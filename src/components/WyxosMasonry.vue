@@ -9,6 +9,8 @@ const props = defineProps({
   }
 })
 
+const columnCount = 3 // Number of columns in the masonry layout
+
 const items = computed(() => {
   return props.pages.reduce((acc, page) => {
     return acc.concat(page.items)
@@ -18,10 +20,10 @@ const items = computed(() => {
 const columns = computed(() => {
   return items.value.reduce(
     (acc, item, index) => {
-      acc[index % props.columnCount].push(item)
+      acc[index % columnCount].push(item)
       return acc
     },
-    Array.from({ length: props.columnCount }, () => [])
+    Array.from({ length: columnCount }, () => [])
   )
 })
 </script>
