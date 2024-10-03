@@ -20,12 +20,34 @@ const pages = ref([
   }
 ])
 
-const onPrevious = () => {
+const onPrevious = async () => {
   console.log('Previous page')
+
+  // wait 1 second
+  await new Promise(resolve => setTimeout(resolve, 1000))
+
+  // insert at the beginning
+  pages.value.unshift({
+    page: pages.value.length + 1,
+    items: [
+      { src: 'https://vuejs.org/images/logo.png', alt: 'Vue.js Logo' },
+      { src: 'https://vuejs.org/images/logo.png', alt: 'Vue.js Logo' },
+      { src: 'https://vuejs.org/images/logo.png', alt: 'Vue.js Logo' },
+      { src: 'https://vuejs.org/images/logo.png', alt: 'Vue.js Logo' },
+      { src: 'https://vuejs.org/images/logo.png', alt: 'Vue.js Logo' },
+      { src: 'https://vuejs.org/images/logo.png', alt: 'Vue.js Logo' },
+      { src: 'https://vuejs.org/images/logo.png', alt: 'Vue.js Logo' },
+      { src: 'https://vuejs.org/images/logo.png', alt: 'Vue.js Logo' },
+      { src: 'https://vuejs.org/images/logo.png', alt: 'Vue.js Logo' },
+      { src: 'https://vuejs.org/images/logo.png', alt: 'Vue.js Logo' },
+    ]
+  })
 }
 
-const onNext = () => {
+const onNext = async () => {
   console.log('Next page')
+
+  await new Promise(resolve => setTimeout(resolve, 1000))
 
   pages.value.push({
     page: pages.value.length + 1,
@@ -46,6 +68,6 @@ const onNext = () => {
 </script>
 
 <template>
-  <WyxosMasonry :pages="pages" @previous="onPrevious" @next="onNext"></WyxosMasonry>
+  <WyxosMasonry :pages="pages" :on-load-next="onNext" :on-load-previous="onPrevious"></WyxosMasonry>
 </template>
 
