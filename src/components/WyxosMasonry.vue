@@ -7,6 +7,10 @@ const props = defineProps({
     type: Number,
     default: 3
   },
+  maxPages: {
+    type: Number,
+    default: 5
+  },
   onLoadNext: Function,
   onLoadPrevious: Function
 })
@@ -23,7 +27,7 @@ const columns = computed(() => {
         acc[index % props.columnCount].push(item)
         return acc
       },
-      Array.from({ length: props.columnCount }, () => [])
+      Array.from({length: props.columnCount}, () => [])
   )
 })
 
@@ -37,12 +41,16 @@ const loadNext = async () => {
   if (typeof props.onLoadNext === 'function' && !isLoadingNext.value) {
     isLoadingNext.value = true;
     await props.onLoadNext();
+    // Ensure the number of pages does not exceed maxPages
+    if (props.pages.length > props.maxPages) {
+      props.pages.shift();
+    }
     isLoadingNext.value = false;
   }
 };
 
 const loadPrevious = async () => {
-  if (typeof props.onLoadPrevious === 'function' && !isLoadingPrevious.value) {
+  if (typeof props.onLoadPrevious === 'function' && !isLoadingPrevious.value && props.pages[0]?.page !== 1) {
     isLoadingPrevious.value = true;
     await props.onLoadPrevious();
     isLoadingPrevious.value = false;
@@ -52,7 +60,9 @@ const loadPrevious = async () => {
 const handleScroll = () => {
   if (!masonryRef.value) return;
 
-  const { scrollTop, scrollHeight, clientHeight } = masonryRef.value;
+  if (isLoadingNext.value || isLoadingPrevious.value) return;
+
+  const {scrollTop, scrollHeight, clientHeight} = masonryRef.value;
 
   atBottom.value = scrollTop + clientHeight >= scrollHeight - 10; // Adjust threshold as needed
   atTop.value = scrollTop <= 10;
@@ -75,8 +85,10 @@ onMounted(() => {
     <button class="scroll-button" @click="loadPrevious" :disabled="isLoadingPrevious">Load Previous</button>
     <div ref="masonryRef" class="masonry">
       <div v-for="(column, index) in columns" :key="index" class="column">
-        <div v-for="(item, index) in column" :key="index">
-          <img :src="item.src" :alt="item.alt" />
+        <div v-for="(item, index) in column" :key="item.id">
+          <img :src="item.src" :alt="item.alt" class="min-h-[100px]"/>
+          <button @click="$emit('remove-item', item.id)" class="remove-button">Remove</button>
+          {{ item.id }}
         </div>
       </div>
     </div>
@@ -131,5 +143,18 @@ onMounted(() => {
 
 .scroll-button:last-of-type {
   bottom: 10px;
+}
+
+.remove-button {
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.remove-button:hover {
+  background-color: darkred;
 }
 </style>
