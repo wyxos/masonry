@@ -83,12 +83,18 @@ onMounted(() => {
 <template>
   <div class="masonry-container overflow-hidden h-screen flex flex-col">
     <div ref="masonryRef" class="masonry flex-1 flex flex-col overflow-auto">
-      <button class="scroll-button" @click="loadPrevious" :disabled="isLoadingPrevious">Load Previous</button>
+      <button
+          class="scroll-button fixed left-1/2 transform -translate-x-1/2 bg-blue-500 text-white border-none py-2 px-4 cursor-pointer transition-colors duration-300 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          @click="loadPrevious" :disabled="isLoadingPrevious">Load Previous
+      </button>
       <div class="flex-1 flex">
         <div v-for="(column, index) in columns" :key="index" class="flex-1">
           <figure v-for="(item, itemIndex) in column" :key="item.id">
             <img :src="item.src" :alt="item.alt" class="min-h-[100px]"/>
-            <button @click="$emit('remove-item', item.id)" class="remove-button">Remove</button>
+            <button @click="$emit('remove-item', item.id)"
+                    class="remove-button bg-red-500 text-white border-none py-1 px-2 cursor-pointer mt-1 transition-colors duration-300 hover:bg-red-700">
+              Remove
+            </button>
             {{ item.id }}
           </figure>
         </div>
@@ -97,44 +103,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-<style>
-.scroll-button {
-  transform: translateX(-50%);
-  background-color: #007BFF;
-  color: white;
-  border: none;
-  padding: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.scroll-button:hover {
-  background-color: #0056b3;
-}
-
-.scroll-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.scroll-button:first-of-type {
-  top: 10px;
-}
-
-.scroll-button:last-of-type {
-  bottom: 10px;
-}
-
-.remove-button {
-  background-color: red;
-  color: white;
-  border: none;
-  padding: 5px;
-  cursor: pointer;
-  margin-top: 5px;
-}
-
-.remove-button:hover {
-  background-color: darkred;
-}
-</style>
