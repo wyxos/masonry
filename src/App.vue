@@ -82,8 +82,6 @@ const onRemoveItem = (item) => {
     const pageIndex = pages.value[index].items.findIndex(i => i.id === item)
     pages.value[index].items.splice(pageIndex, 1)
   }
-
-
 }
 </script>
 

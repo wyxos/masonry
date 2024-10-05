@@ -81,44 +81,24 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="masonry-container">
-    <button class="scroll-button" @click="loadPrevious" :disabled="isLoadingPrevious">Load Previous</button>
-    <div ref="masonryRef" class="masonry">
-      <div v-for="(column, index) in columns" :key="index" class="column">
-        <div v-for="(item, index) in column" :key="item.id">
-          <img :src="item.src" :alt="item.alt" class="min-h-[100px]"/>
-          <button @click="$emit('remove-item', item.id)" class="remove-button">Remove</button>
-          {{ item.id }}
+  <div class="masonry-container overflow-hidden h-screen flex flex-col">
+    <div ref="masonryRef" class="masonry flex-1 flex flex-col overflow-auto">
+      <button class="scroll-button" @click="loadPrevious" :disabled="isLoadingPrevious">Load Previous</button>
+      <div class="flex-1 flex">
+        <div v-for="(column, index) in columns" :key="index" class="flex-1">
+          <figure v-for="(item, itemIndex) in column" :key="item.id">
+            <img :src="item.src" :alt="item.alt" class="min-h-[100px]"/>
+            <button @click="$emit('remove-item', item.id)" class="remove-button">Remove</button>
+            {{ item.id }}
+          </figure>
         </div>
       </div>
+      <button class="scroll-button" @click="loadNext" :disabled="isLoadingNext">Load Next</button>
     </div>
-    <button class="scroll-button" @click="loadNext" :disabled="isLoadingNext">Load Next</button>
   </div>
 </template>
 <style>
-.masonry-container {
-  overflow: hidden;
-  position: relative;
-  height: 100vh; /* Set desired height */
-}
-
-.masonry {
-  overflow: auto;
-  height: calc(100% - 80px); /* Adjust for button height if needed */
-  display: flex;
-  gap: 16px; /* Adjust gap between columns */
-}
-
-.column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px; /* Adjust gap between items in each column */
-}
-
 .scroll-button {
-  position: absolute;
-  left: 50%;
   transform: translateX(-50%);
   background-color: #007BFF;
   color: white;
