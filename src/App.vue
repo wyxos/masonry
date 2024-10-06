@@ -1,14 +1,13 @@
 <script setup>
-import { onMounted, ref } from 'vue';
-import { v4 as uuidv4 } from 'uuid';
-
+import {onMounted, ref} from 'vue';
+import {v4 as uuidv4} from 'uuid';
 
 const pages = ref([]);
-const isLoading = ref(true);
+const isLoading = ref(false);
 const hasError = ref(false);
 
 const loadPage = async () => {
-  isLoading.value = true;
+  isLoading.value = pages.value.length === 0;
   hasError.value = false;
   try {
     // Fetch the next page
@@ -19,7 +18,7 @@ const loadPage = async () => {
         } else {
           resolve({
             data: {
-              items: Array.from({ length: 10 }, (_, index) => {
+              items: Array.from({length: 10}, (_, index) => {
                 const randomWidth = Math.floor(Math.random() * 200) + 100; // Random width between 100 and 300
                 const randomHeight = Math.floor(Math.random() * 200) + 100; // Random height between 100 and 300
                 return {
@@ -34,10 +33,10 @@ const loadPage = async () => {
     });
 
     // Append the new page to the existing pages
-    pages.value.push({
-      cursor: uuidv4(),
+    pages.value = [...pages.value, {
+      page: uuidv4(),
       items: response.data.items,
-    });
+    }];
   } catch (error) {
     console.error(error);
     hasError.value = true;
@@ -52,7 +51,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isLoading">
+  <div v-if="isLoading && pages.length === 0">
     Loading...
   </div>
   <div v-else-if="hasError">
@@ -61,14 +60,14 @@ onMounted(() => {
   </div>
   <div v-else>
     <ul>
-      <li v-for="page in pages" :key="page.cursor">
+      <li v-for="page in pages" :key="page.page">
         <ul>
           <li v-for="item in page.items" :key="item.id">
-            <img :src="item.src" alt="Random Image" />
+            <img :src="item.src" alt="Random Image"/>
           </li>
         </ul>
       </li>
     </ul>
-    <button @click="loadPage">Load More</button>
+    <button v-if="!isLoading" @click="loadPage">Load More</button>
   </div>
 </template>
