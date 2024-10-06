@@ -87,5 +87,5 @@ const onRemoveItem = (item) => {
 
 <template>
   <WyxosMasonry :pages="pages" :on-load-next="onNext" :on-load-previous="onPrevious"
-                @removeItem="onRemoveItem($event)" :max-pages="5"></WyxosMasonry>
+  :on-remove-item="onRemoveItem" :max-pages="5"></WyxosMasonry>
 </template>
