@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 
 const pages = ref([]);
@@ -48,6 +48,22 @@ const loadPage = async () => {
 onMounted(() => {
   loadPage();
 });
+
+const columnCount = 4;
+
+
+const masonry = computed(() => {
+  // distribute in 4 columns
+  const columns = Array.from({ length: columnCount }, () => []);
+  pages.value.forEach((page) => {
+    page.items.forEach((item, index) => {
+      columns[index % 4].push(item);
+    });
+  });
+
+  return columns;
+
+});
 </script>
 
 <template>
@@ -56,15 +72,13 @@ onMounted(() => {
   </div>
 
   <div v-else>
-    <ul>
-      <li v-for="page in pages" :key="page.page">
-        <ul>
-          <li v-for="item in page.items" :key="item.id">
-            <img :src="item.src" alt="Random Image"/>
-          </li>
-        </ul>
-      </li>
-    </ul>
+    <div class="flex">
+      <div v-for="(column, index) in masonry" :key="index" class="column">
+        <div v-for="item in column" :key="item.id" class="item">
+          <img :src="item.src" alt="Masonry item" />
+        </div>
+      </div>
+    </div>
     <button v-if="!isLoading" @click="loadPage">Load More</button>
   </div>
 </template>
