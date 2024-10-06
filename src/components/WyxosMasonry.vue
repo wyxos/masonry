@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch, nextTick } from "vue";
 import anime from "animejs";
 
 const props = defineProps({
@@ -48,6 +48,8 @@ const loadNext = async () => {
       props.pages.shift();
     }
     isLoadingNext.value = false;
+    await nextTick();
+    animateReLayout();
   }
 };
 
@@ -60,6 +62,8 @@ const loadPrevious = async () => {
     isLoadingPrevious.value = true;
     await props.onLoadPrevious();
     isLoadingPrevious.value = false;
+    await nextTick();
+    animateReLayout();
   }
 };
 
@@ -78,6 +82,48 @@ const handleScroll = () => {
   } else if (atTop.value) {
     loadPrevious();
   }
+};
+
+const animateRemoval = (itemId) => {
+  const itemElement = document.getElementById(`item-${itemId}`);
+  if (itemElement) {
+    // Clone the element to animate the removal
+    const clone = itemElement.cloneNode(true);
+    clone.style.position = "absolute";
+    const rect = itemElement.getBoundingClientRect();
+    clone.style.top = `${rect.top}px`;
+    clone.style.left = `${rect.left}px`;
+    clone.style.width = `${rect.width}px`;
+    clone.style.height = `${rect.height}px`;
+    document.body.appendChild(clone);
+
+    // Animate the clone
+    anime({
+      targets: clone,
+      opacity: [1, 0],
+      translateX: [0, -50],
+      duration: 500,
+      easing: "easeInOutQuad",
+      complete: async () => {
+        document.body.removeChild(clone);
+        props.onRemoveItem(itemId);
+        await nextTick();
+        animateReLayout();
+      },
+    });
+  }
+};
+
+const animateReLayout = () => {
+  const itemElements = document.querySelectorAll(".item");
+  anime({
+    targets: itemElements,
+    translateX: 0,
+    translateY: 0,
+    duration: 500,
+    easing: "easeInOutQuad",
+    delay: anime.stagger(50),
+  });
 };
 
 onMounted(() => {
@@ -100,10 +146,10 @@ onMounted(() => {
       </button>
       <div class="flex-1 flex">
         <div v-for="(column, index) in columns" :key="index" class="flex-1">
-          <figure v-for="(item, itemIndex) in column" :key="item.id" :id="`item-${item.id}`" class="item">
+          <figure v-for="(item, itemIndex) in column" :key="item.id" :id="`item-${item.id}`" class="item" :data-item-id="item.id">
             <img :src="item.src" :alt="item.alt" class="min-h-[100px]" />
             <button
-                @click="() => { props.onRemoveItem(item.id); }"
+                @click="() => { animateRemoval(item.id); }"
                 class="remove-button bg-red-500 text-white border-none py-1 px-2 cursor-pointer mt-1 transition-colors duration-300 hover:bg-red-700"
             >
               Remove
@@ -119,6 +165,10 @@ onMounted(() => {
 
 <style scoped>
 .item {
+  position: relative;
+  transition: transform 0.5s ease-in-out;
+}
+.masonry-container {
   position: relative;
 }
 </style>

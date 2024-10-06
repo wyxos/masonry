@@ -1,91 +1,74 @@
 <script setup>
-import { ref } from 'vue'
-import WyxosMasonry from "./components/WyxosMasonry.vue";
-
-function createID() {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-}
+import { onMounted, ref } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 
-const pages = ref([
-  {
-    page: 1,
-    items: [
-      { src: 'https://picsum.photos/id/1011/400/300', alt: 'Mountain Landscape', id: createID() },
-      { src: 'https://picsum.photos/id/1025/400/300', alt: 'Golden Retriever', id: createID() },
-      { src: 'https://picsum.photos/id/1035/400/300', alt: 'Forest Pathway', id: createID() },
-      { src: 'https://picsum.photos/id/1049/400/300', alt: 'Sunset Over Sea', id: createID() },
-      { src: 'https://picsum.photos/id/1059/400/300', alt: 'Colorful Bird', id: createID() },
-      { src: 'https://picsum.photos/id/1069/400/300', alt: 'Snowy Mountains', id: createID() },
-      { src: 'https://picsum.photos/id/1084/400/300', alt: 'Flower Close-up', id: createID() },
-      { src: 'https://picsum.photos/id/109/400/300', alt: 'Cityscape', id: createID() },
-      { src: 'https://picsum.photos/id/110/400/300', alt: 'Desert Dunes', id: createID() },
-      { src: 'https://picsum.photos/id/111/400/300', alt: 'Starry Night Sky', id: createID() },
-    ]
+const pages = ref([]);
+const isLoading = ref(true);
+const hasError = ref(false);
+
+const loadPage = async () => {
+  isLoading.value = true;
+  hasError.value = false;
+  try {
+    // Fetch the next page
+    const response = await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (Math.random() > 0.8) { // Simulate a potential failure
+          reject(new Error('Failed to load data'));
+        } else {
+          resolve({
+            data: {
+              items: Array.from({ length: 10 }, (_, index) => {
+                const randomWidth = Math.floor(Math.random() * 200) + 100; // Random width between 100 and 300
+                const randomHeight = Math.floor(Math.random() * 200) + 100; // Random height between 100 and 300
+                return {
+                  id: uuidv4(),
+                  src: `https://picsum.photos/${randomWidth}/${randomHeight}?random=${index}`,
+                };
+              }),
+            },
+          });
+        }
+      }, 1000);
+    });
+
+    // Append the new page to the existing pages
+    pages.value.push({
+      cursor: uuidv4(),
+      items: response.data.items,
+    });
+  } catch (error) {
+    console.error(error);
+    hasError.value = true;
+  } finally {
+    isLoading.value = false;
   }
-]);
+};
 
-
-
-const onPrevious = async () => {
-  console.log('Previous page')
-
-  // wait 1 second
-  await new Promise(resolve => setTimeout(resolve, 1000))
-
-  // insert at the beginning
-  pages.value.unshift({
-    page: pages.value.length + 1,
-    items: [
-      { src: 'https://picsum.photos/id/112/400/300', alt: 'Ocean Waves', id: createID() },
-      { src: 'https://picsum.photos/id/113/400/300', alt: 'Majestic Lion', id: createID() },
-      { src: 'https://picsum.photos/id/114/400/300', alt: 'Rustic Barn', id: createID() },
-      { src: 'https://picsum.photos/id/115/400/300', alt: 'Calm Lake', id: createID() },
-      { src: 'https://picsum.photos/id/116/400/300', alt: 'Autumn Forest', id: createID() },
-      { src: 'https://picsum.photos/id/117/400/300', alt: 'City Lights', id: createID() },
-      { src: 'https://picsum.photos/id/118/400/300', alt: 'Mountain Peak', id: createID() },
-      { src: 'https://picsum.photos/id/119/400/300', alt: 'Green Fields', id: createID() },
-      { src: 'https://picsum.photos/id/120/400/300', alt: 'Waterfall', id: createID() },
-      { src: 'https://picsum.photos/id/121/400/300', alt: 'Bridge in Fog', id: createID() },
-    ]
-  });
-}
-
-const onNext = async () => {
-  console.log('Next page')
-
-  await new Promise(resolve => setTimeout(resolve, 1000))
-
-  pages.value.push({
-    page: pages.value.length + 1,
-    items: [
-      { src: 'https://picsum.photos/id/122/400/300', alt: 'Vast Desert', id: createID() },
-      { src: 'https://picsum.photos/id/123/400/300', alt: 'Old Lighthouse', id: createID() },
-      { src: 'https://picsum.photos/id/124/400/300', alt: 'Pine Trees', id: createID() },
-      { src: 'https://picsum.photos/id/125/400/300', alt: 'Blue Sky Over Hills', id: createID() },
-      { src: 'https://picsum.photos/id/126/400/300', alt: 'Snowfall', id: createID() },
-      { src: 'https://picsum.photos/id/127/400/300', alt: 'Mountain Cabin', id: createID() },
-      { src: 'https://picsum.photos/id/128/400/300', alt: 'Sunny Meadow', id: createID() },
-      { src: 'https://picsum.photos/id/129/400/300', alt: 'Wild River', id: createID() },
-      { src: 'https://picsum.photos/id/130/400/300', alt: 'Tulip Garden', id: createID() },
-      { src: 'https://picsum.photos/id/131/400/300', alt: 'Hazy Forest', id: createID() },
-    ]
-  });
-}
-
-const onRemoveItem = (item) => {
-  console.log('Remove item', item)
-
-  const index = pages.value.findIndex(page => page.items.some(i => i.id === item))
-
-  if (index !== -1) {
-    const pageIndex = pages.value[index].items.findIndex(i => i.id === item)
-    pages.value[index].items.splice(pageIndex, 1)
-  }
-}
+onMounted(() => {
+  loadPage();
+});
 </script>
 
 <template>
-  <WyxosMasonry :pages="pages" :on-load-next="onNext" :on-load-previous="onPrevious"
-  :on-remove-item="onRemoveItem" :max-pages="5"></WyxosMasonry>
+  <div v-if="isLoading">
+    Loading...
+  </div>
+  <div v-else-if="hasError">
+    <p>Error loading data. Please try again.</p>
+    <button @click="loadPage">Retry</button>
+  </div>
+  <div v-else>
+    <ul>
+      <li v-for="page in pages" :key="page.cursor">
+        <ul>
+          <li v-for="item in page.items" :key="item.id">
+            <img :src="item.src" alt="Random Image" />
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <button @click="loadPage">Load More</button>
+  </div>
 </template>
