@@ -84,6 +84,7 @@ onMounted(() => {
   <div class="masonry-container overflow-hidden h-screen flex flex-col">
     <div ref="masonryRef" class="masonry flex-1 flex flex-col overflow-auto">
       <button
+          v-if="props.pages[0]?.page !== 1"
           class="scroll-button fixed left-1/2 transform -translate-x-1/2 bg-blue-500 text-white border-none py-2 px-4 cursor-pointer transition-colors duration-300 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           @click="loadPrevious" :disabled="isLoadingPrevious">Load Previous
       </button>
