@@ -1,6 +1,6 @@
 <script setup>
-import {onMounted, ref} from 'vue';
-import {v4 as uuidv4} from 'uuid';
+import { onMounted, ref } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 const pages = ref([]);
 const isLoading = ref(false);
@@ -18,7 +18,7 @@ const loadPage = async () => {
         } else {
           resolve({
             data: {
-              items: Array.from({length: 10}, (_, index) => {
+              items: Array.from({ length: 10 }, (_, index) => {
                 const randomWidth = Math.floor(Math.random() * 200) + 100; // Random width between 100 and 300
                 const randomHeight = Math.floor(Math.random() * 200) + 100; // Random height between 100 and 300
                 return {
@@ -39,7 +39,7 @@ const loadPage = async () => {
     }];
   } catch (error) {
     console.error(error);
-    hasError.value = true;
+    alert('Failed to load data. Please try again.');
   } finally {
     isLoading.value = false;
   }
@@ -54,10 +54,7 @@ onMounted(() => {
   <div v-if="isLoading && pages.length === 0">
     Loading...
   </div>
-  <div v-else-if="hasError">
-    <p>Error loading data. Please try again.</p>
-    <button @click="loadPage">Retry</button>
-  </div>
+
   <div v-else>
     <ul>
       <li v-for="page in pages" :key="page.page">
