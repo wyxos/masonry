@@ -23,7 +23,7 @@ const loadPage = async () => {
                 const randomHeight = Math.floor(Math.random() * 200) + 100; // Random height between 100 and 300
                 return {
                   id: uuidv4(),
-                  src: `https://picsum.photos/${randomWidth}/${randomHeight}?random=${index}`,
+                  src: `https://picsum.photos/${randomWidth}/${randomHeight}`,
                 };
               }),
             },
@@ -45,24 +45,31 @@ const loadPage = async () => {
   }
 };
 
+const removeItem = (id) => {
+  pages.value = pages.value.map((page) => {
+    return {
+      ...page,
+      items: page.items.filter(item => item.id !== id)
+    };
+  });
+};
+
 onMounted(() => {
   loadPage();
 });
 
 const columnCount = 4;
 
-
 const masonry = computed(() => {
   // distribute in 4 columns
   const columns = Array.from({ length: columnCount }, () => []);
   pages.value.forEach((page) => {
     page.items.forEach((item, index) => {
-      columns[index % 4].push(item);
+      columns[index % columnCount].push(item);
     });
   });
 
   return columns;
-
 });
 </script>
 
@@ -73,9 +80,10 @@ const masonry = computed(() => {
 
   <div v-else>
     <div class="flex">
-      <div v-for="(column, index) in masonry" :key="index" class="column">
-        <div v-for="item in column" :key="item.id" class="item">
+      <div v-for="(column, index) in masonry" :key="index">
+        <div v-for="item in column" :key="item.id">
           <img :src="item.src" alt="Masonry item" />
+          <button @click="removeItem(item.id)">Remove {{ item.id }}</button>
         </div>
       </div>
     </div>
