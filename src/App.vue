@@ -65,6 +65,8 @@ const loadPrevious = async () => {
   isLoading.value = true;
   loadingDirection.value = 'previous';
 
+  const currentScrollHeight = infiniteScroll.value.scrollHeight;
+
   const page = {
     page: pages.value[0].page - 1,
     items: Array.from({ length: 48 }, (_, index) => ({
@@ -81,6 +83,10 @@ const loadPrevious = async () => {
   pages.value.unshift(page);
   isLoading.value = false;
   loadingDirection.value = '';
+
+  // Adjust scroll position to maintain the user's scroll point
+  const newScrollHeight = infiniteScroll.value.scrollHeight;
+  infiniteScroll.value.scrollTop = newScrollHeight - currentScrollHeight;
 
   // Keep only the last 5 pages for caching
   if (pages.value.length > 5) {
