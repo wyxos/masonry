@@ -1,6 +1,8 @@
 <script setup>
-import {computed, onMounted, ref} from "vue";
+import { computed, onMounted, ref } from "vue";
 import { v4 as uuid } from "uuid";
+import throttle from "lodash/throttle";
+
 
 const pages = ref([]);
 const infiniteScroll = ref(null);
@@ -19,7 +21,9 @@ onMounted(() => {
 
   pages.value.push(page);
 
-  infiniteScroll.value.addEventListener("scroll", onScroll);
+  if (infiniteScroll.value) {
+    infiniteScroll.value.addEventListener("scroll", throttle(onScroll, 200));
+  }
 });
 
 const items = computed(() => {
@@ -44,6 +48,11 @@ const loadNext = async () => {
 
   pages.value.push(page);
   isLoading.value = false;
+
+  // Keep only the last 5 pages for caching
+  if (pages.value.length > 5) {
+    pages.value.shift();
+  }
 };
 
 const loadedPages = computed(() => {
@@ -52,13 +61,14 @@ const loadedPages = computed(() => {
 
 const onScroll = () => {
   if (infiniteScroll.value) {
-    const {scrollTop, scrollHeight, clientHeight} = infiniteScroll.value;
+    const { scrollTop, scrollHeight, clientHeight } = infiniteScroll.value;
     if (scrollTop + clientHeight >= scrollHeight - 10 && !isLoading.value) {
       loadNext();
     }
   }
 };
 </script>
+
 
 <template>
   <div class=" h-screen flex flex-col">
