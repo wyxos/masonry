@@ -113,7 +113,7 @@ const onScroll = () => {
 <template>
   <div class="h-screen flex flex-col">
     <p>{{ loadedPages }}</p>
-    <div ref="infiniteScroll" class="grid grid-cols-6 gap-4 flex-1 overflow-y-scroll custom-scroll">
+    <div ref="infiniteScroll" class="infinite-scroll grid grid-cols-6 gap-4 flex-1 overflow-y-scroll custom-scroll">
       <p v-if="isLoading && loadingDirection === 'previous'" class="text-center col-span-6">Loading previous content...</p>
       <div v-for="item in items" :key="item.key" class="text-center">
         <img :src="item.src" alt="item.title"/>
