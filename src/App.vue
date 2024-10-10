@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from "vue";
 import { v4 as uuid } from "uuid";
 import throttle from "lodash/throttle";
 
-
 const pages = ref([]);
 const infiniteScroll = ref(null);
 const isLoading = ref(false);
@@ -46,6 +45,9 @@ const loadNext = async () => {
     })),
   };
 
+  // Simulate a delay to show loading state
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   pages.value.push(page);
   isLoading.value = false;
 
@@ -69,15 +71,15 @@ const onScroll = () => {
 };
 </script>
 
-
 <template>
-  <div class=" h-screen flex flex-col">
+  <div class="h-screen flex flex-col">
     <p>{{ loadedPages }}</p>
     <div ref="infiniteScroll" class="grid grid-cols-6 gap-4 flex-1 overflow-y-scroll custom-scroll">
       <div v-for="item in items" :key="item.key" class="text-center">
         <img :src="item.src" alt="item.title"/>
         <p>{{ item.title }}</p>
       </div>
+      <p v-if="isLoading" class="text-center col-span-6">Loading more content...</p>
     </div>
   </div>
 </template>
