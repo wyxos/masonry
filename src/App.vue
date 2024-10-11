@@ -19,12 +19,7 @@ const loadNext = async () => {
   // Simulate a delay to show loading state
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  pages.value.push(page);
-
-  // Keep only the last 5 pages for caching
-  if (pages.value.length > 5) {
-    pages.value.shift();
-  }
+  return page
 };
 
 const loadPrevious = async () => {
@@ -43,19 +38,8 @@ const loadPrevious = async () => {
   // Simulate a delay to show loading state
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  pages.value.unshift(page);
-
-  // Keep only the last 5 pages for caching
-  if (pages.value.length > 5) {
-    pages.value.pop();
-  }
+  return page
 };
-
-const items = computed(() => {
-  return pages.value.reduce((acc, page) => {
-    return acc.concat(page.items);
-  }, []);
-});
 
 const loadedPages = computed(() => {
   return pages.value.map((page) => page.page);
@@ -76,14 +60,19 @@ const load = async () => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
 
-  pages.value.push(page);
+  return page
 }
+
+const handleUpdatePages = (updatedPages) => {
+  pages.value = updatedPages;
+};
 </script>
 
 <template>
   <div class="h-screen flex flex-col">
     <p>{{ loadedPages }}</p>
-    <wyxos-masonry :load="load" :load-next="loadNext" :load-previous="loadPrevious" :items="items">
+    <wyxos-masonry :load="load" :load-next="loadNext" :load-previous="loadPrevious" :pages="pages"
+                   @updatePages="handleUpdatePages">
       <template #item="{ item }">
         <div>
           <img :src="item.src" :alt="item.title" />
