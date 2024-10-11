@@ -1,129 +1,74 @@
+<template>
+  <div ref="infiniteScroll" class="infinite-scroll flex-1 flex flex-col overflow-auto custom-scroll"
+       @scroll="throttledOnScroll">
+    <p v-if="isLoading && loadingDirection === 'previous'" class="text-center">Loading previous content...</p>
+    <div class="grid grid-cols-6 flex-1">
+      <div v-for="item in items" :key="item.key">
+        <slot name="item" :item="item">
+          <img :src="item.src" :alt="item.title"/>
+        </slot>
+      </div>
+    </div>
+    <p v-if="isLoading && loadingDirection === 'next'" class="text-center">Loading more content...</p>
+  </div>
+</template>
+
 <script setup>
-import {computed, onMounted, ref} from "vue";
-import {v4 as uuid} from "uuid";
+import {ref, watch, onMounted, nextTick} from "vue";
 import throttle from "lodash/throttle";
 
-const pages = ref([]);
-const infiniteScroll = ref(null);
 const isLoading = ref(false);
 const loadingDirection = ref('');
 
+const props = defineProps({
+  onInitialContentReady: Function,
+  loadNext: Function,
+  loadPrevious: Function,
+  items: Array,
+});
+
+const infiniteScroll = ref(null);
+
 onMounted(() => {
-  const page = {
-    page: 1,
-    items: Array.from({length: 48}, (_, index) => ({
-      id: index,
-      key: uuid(),
-      title: `Item ${index + 1}`,
-      src: `https://picsum.photos/200/200?random=${index}`,
-    })),
-  };
-
-  pages.value.push(page);
-
-  if (infiniteScroll.value) {
-    infiniteScroll.value.addEventListener("scroll", throttle(onScroll, 200));
-  }
+  // Emit event to indicate initial content is ready
+  props.onInitialContentReady?.();
 });
 
-const items = computed(() => {
-  return pages.value.reduce((acc, page) => {
-    return acc.concat(page.items);
-  }, []);
-});
+let currentScrollHeight = 0;
 
-const loadNext = async () => {
-  if (isLoading.value) return;
-  isLoading.value = true;
-  loadingDirection.value = 'next';
-
-  const page = {
-    page: pages.value[pages.value.length - 1].page + 1,
-    items: Array.from({length: 48}, (_, index) => ({
-      id: index,
-      key: uuid(),
-      title: `Item ${index + 1}`,
-      src: `https://picsum.photos/200/200?random=${index}`,
-    })),
-  };
-
-  // Simulate a delay to show loading state
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  pages.value.push(page);
-  isLoading.value = false;
-  loadingDirection.value = '';
-
-  // Keep only the last 5 pages for caching
-  if (pages.value.length > 5) {
-    pages.value.shift();
+const throttledOnScroll = throttle(() => {
+  if (!isLoading.value) {
+    onScroll();
   }
-};
-
-const loadPrevious = async () => {
-  if (isLoading.value || pages.value[0].page <= 1) return;
-  isLoading.value = true;
-  loadingDirection.value = 'previous';
-
-  const currentScrollHeight = infiniteScroll.value.scrollHeight;
-
-  const page = {
-    page: pages.value[0].page - 1,
-    items: Array.from({length: 48}, (_, index) => ({
-      id: index,
-      key: uuid(),
-      title: `Item ${index + 1}`,
-      src: `https://picsum.photos/200/200?random=${index}`,
-    })),
-  };
-
-  // Simulate a delay to show loading state
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  pages.value.unshift(page);
-  isLoading.value = false;
-  loadingDirection.value = '';
-
-  // Adjust scroll position to maintain the user's scroll point
-  const newScrollHeight = infiniteScroll.value.scrollHeight;
-  infiniteScroll.value.scrollTop = newScrollHeight - currentScrollHeight;
-
-  // Keep only the last 5 pages for caching
-  if (pages.value.length > 5) {
-    pages.value.pop();
-  }
-};
-
-const loadedPages = computed(() => {
-  return pages.value.map((page) => page.page);
-});
+}, 200);
 
 const onScroll = () => {
   if (infiniteScroll.value) {
     const {scrollTop, scrollHeight, clientHeight} = infiniteScroll.value;
     if (scrollTop + clientHeight >= scrollHeight - 10 && !isLoading.value) {
-      loadNext();
+      loadingDirection.value = 'next';
+      isLoading.value = true;
+      props.loadNext().finally(() => {
+        isLoading.value = false;
+      });
     } else if (scrollTop <= 10 && !isLoading.value) {
-      loadPrevious();
+      loadingDirection.value = 'previous';
+      isLoading.value = true;
+      const prevScrollTop = infiniteScroll.value.scrollTop;
+      currentScrollHeight = infiniteScroll.value.scrollHeight;
+      props.loadPrevious().finally(async () => {
+        await nextTick();
+        // Adjust scroll position to maintain user's scroll point when loading previous content
+        if (infiniteScroll.value) {
+          const newScrollHeight = infiniteScroll.value.scrollHeight;
+          infiniteScroll.value.scrollTop = prevScrollTop + (newScrollHeight - currentScrollHeight);
+        }
+        isLoading.value = false;
+      });
     }
   }
 };
 </script>
-
-<template>
-  <div class="h-screen flex flex-col">
-    <p>{{ loadedPages }}</p>
-    <div ref="infiniteScroll" class="infinite-scroll grid grid-cols-6 gap-4 flex-1 overflow-y-scroll custom-scroll">
-      <p v-if="isLoading && loadingDirection === 'previous'" class="text-center col-span-6">Loading previous
-        content...</p>
-      <div v-for="item in items" :key="item.key" class="text-center">
-        <img :src="item.src" alt="item.title"/>
-        <p>{{ item.title }}</p>
-      </div>
-      <p v-if="isLoading && loadingDirection === 'next'" class="text-center col-span-6">Loading more content...</p>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .custom-scroll {
