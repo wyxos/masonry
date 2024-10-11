@@ -4,7 +4,7 @@
 
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import App from './WyxosMasonry.vue';
+import Masonry from './WyxosMasonry.vue';
 import { nextTick } from 'vue';
 import { v4 as uuid } from 'uuid';
 
@@ -15,84 +15,98 @@ const generateMockPageItems = () => Array.from({ length: 48 }, (_, index) => ({
     src: `https://picsum.photos/200/200?random=${index}`,
 }));
 
-
-describe('App.vue', () => {
+describe('Masonry.vue', () => {
     let wrapper;
+    let mockLoad, mockLoadNext, mockLoadPrevious;
 
     beforeEach(() => {
-        wrapper = mount(App, {
-            attachTo: document.body,
+        mockLoad = vi.fn().mockResolvedValue();
+        mockLoadNext = vi.fn().mockResolvedValue();
+        mockLoadPrevious = vi.fn().mockResolvedValue();
+
+        wrapper = mount(Masonry, {
+            props: {
+                load: mockLoad,
+                loadNext: mockLoadNext,
+                loadPrevious: mockLoadPrevious,
+                items: generateMockPageItems(),
+            },
         });
     });
 
     it('loads initial page correctly', async () => {
         await nextTick();
+        await wrapper.vm.$nextTick(); // Wait for the component to be ready
 
         // Check if the initial page items are rendered
-        const itemElements = wrapper.findAll('div.text-center');
+        const itemElements = wrapper.findAll('div > img');
         expect(itemElements.length).toBe(48);
     });
 
     it('loads next page on scroll to bottom', async () => {
-        // Ensure initial page is loaded
         await nextTick();
+        await wrapper.vm.$nextTick();
 
         // Mock scroll to bottom
         const infiniteScrollDiv = wrapper.find('.infinite-scroll');
-        infiniteScrollDiv.element.scrollTop = infiniteScrollDiv.element.scrollHeight;
+        infiniteScrollDiv.element.scrollTop = 1000;
         await infiniteScrollDiv.trigger('scroll');
 
-        // Simulate next page load
-        wrapper.vm.pages.push({ page: 2, items: generateMockPageItems() });
-        await nextTick();
-
-        // Ensure the next page has loaded
-        expect(wrapper.vm.pages.length).toBe(2);
+        // Ensure the loadNext function has been called
+        expect(mockLoadNext).toHaveBeenCalled();
     });
 
     it('loads previous page on scroll to top', async () => {
-        // Ensure initial page is loaded
-        await nextTick();
+        await nextTick(); // Ensure the initial setup is complete
+        await wrapper.vm.$nextTick();
 
-        // Mock scroll to top
+        // Set the scroll position to simulate starting somewhere in the middle
         const infiniteScrollDiv = wrapper.find('.infinite-scroll');
-        infiniteScrollDiv.element.scrollTop = 0;
-        await infiniteScrollDiv.trigger('scroll');
-
-        // Simulate previous page load
-        wrapper.vm.pages.unshift({ page: 0, items: generateMockPageItems() });
+        infiniteScrollDiv.element.scrollTop = 500; // Start from a non-zero scroll position
         await nextTick();
 
-        // Ensure the previous page has loaded
-        expect(wrapper.vm.pages[0].page).toBe(0);
+        // Now simulate scrolling to the top by setting scrollTop to 0
+        infiniteScrollDiv.element.scrollTop = 0;
+
+        // Manually call the scroll event handler to simulate the behavior
+        await infiniteScrollDiv.trigger('scroll');
+        await wrapper.vm.throttledOnScroll();  // If throttled, ensure the handler is called
+
+        // Wait for Vue updates after the scroll event
+        await nextTick();
+
+        // Ensure the loadPrevious function has been called
+        expect(mockLoadPrevious).toHaveBeenCalled();
     });
 
     it('maintains scroll position after loading previous page', async () => {
-        // Set up initial pages
-        wrapper.vm.pages = [
-            { page: 4, items: generateMockPageItems() },
-            { page: 5, items: generateMockPageItems() },
-        ];
         await nextTick();
+        await wrapper.vm.$nextTick();
 
+        // Set initial scroll position
         const infiniteScrollDiv = wrapper.find('.infinite-scroll');
-        infiniteScrollDiv.element.scrollTop = 100; // Set initial scroll position
+        infiniteScrollDiv.element.scrollTop = 500;
         await nextTick();
 
         // Mock scroll to top
         infiniteScrollDiv.element.scrollTop = 0;
         await infiniteScrollDiv.trigger('scroll');
 
-        // Simulate loading previous page
-        wrapper.vm.pages.unshift({ page: 3, items: generateMockPageItems() });
-        await nextTick();
-        await nextTick(); // Wait for DOM updates to apply
+        // Ensure the loadPrevious function has been called
+        expect(mockLoadPrevious).toHaveBeenCalled();
 
-        // Adjust scroll position to maintain user view
-        infiniteScrollDiv.element.scrollTop = 100; // Reset to the previous scroll position
-        await nextTick();
+        // Simulate loading previous page and adjust scroll
+        wrapper.setProps({ items: [...generateMockPageItems(), ...wrapper.props().items] });
+        await nextTick(); // Wait for items to be added to the DOM
+
+        // Wait for scroll height adjustment to stabilize
+        let retries = 10; // Set a retry limit to avoid infinite loops
+        while (retries > 0 && infiniteScrollDiv.element.scrollTop === 0) {
+            await nextTick();
+            retries--;
+        }
 
         // Ensure scroll position is maintained correctly
-        expect(infiniteScrollDiv.element.scrollTop).toBe(100);
+        expect(infiniteScrollDiv.element.scrollTop).toBeGreaterThan(0);
     });
 });

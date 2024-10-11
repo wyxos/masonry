@@ -61,7 +61,7 @@ const loadedPages = computed(() => {
   return pages.value.map((page) => page.page);
 });
 
-onMounted(() => {
+const load = async () => {
   const page = {
     page: 1,
     items: Array.from({ length: 48 }, (_, index) => ({
@@ -72,14 +72,18 @@ onMounted(() => {
     })),
   };
 
+  // Simulate a delay to show loading state
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+
   pages.value.push(page);
-});
+}
 </script>
 
 <template>
   <div class="h-screen flex flex-col">
     <p>{{ loadedPages }}</p>
-    <wyxos-masonry :load-next="loadNext" :load-previous="loadPrevious" :items="items">
+    <wyxos-masonry :load="load" :load-next="loadNext" :load-previous="loadPrevious" :items="items">
       <template #item="{ item }">
         <div>
           <img :src="item.src" :alt="item.title" />
