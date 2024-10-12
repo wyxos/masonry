@@ -1,7 +1,20 @@
 {
-  "name": "mansory",
-  "private": true,
-  "version": "0.0.0",
+  "name": "wyxos-masonry",
+  "private": false,
+  "version": "1.0.0",
+  "description": "A masonry layout component for Vue 3.",
+  "main": "dist/wyxos-masonry.umd.js",
+  "module": "dist/wyxos-masonry.es.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/wyxos-masonry.esm.js",
+      "require": "./dist/wyxos-masonry.umd.js"
+    }
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,21 +22,29 @@
     "preview": "vite preview",
     "test": "vitest"
   },
-  "dependencies": {
-    "lodash": "^4.17.21",
-    "vue": "^3.4.37"
+  "keywords": [
+    "vue",
+    "vue3",
+    "masonry",
+    "layout",
+    "component"
+  ],
+  "author": "Joey <github@wyxos.com>",
+  "license": "MIT",
+  "peerDependencies": {
+    "vue": "^3.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.2",
     "@vue/test-utils": "^2.4.6",
-    "animejs": "^3.2.2",
     "autoprefixer": "^10.4.20",
-    "gsap": "^3.12.5",
     "jsdom": "^25.0.1",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
     "uuid": "^10.0.0",
     "vite": "^5.4.1",
-    "vitest": "^2.1.2"
+    "vitest": "^2.1.2",
+    "lodash": "^4.17.21",
+    "vue": "^3.4.37"
   }
 }

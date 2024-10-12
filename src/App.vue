@@ -72,19 +72,21 @@ const handleUpdatePages = (updatedPages) => {
 const onAdd = () => {
   if (!pages.value.length) return; // Avoid adding items if no pages are loaded
 
-  // Select a random page from the loaded pages
-  const randomPageIndex = Math.floor(Math.random() * pages.value.length);
-  const selectedPage = pages.value[randomPageIndex];
+  // Loop through each page and add a new item at a random position
+  pages.value.forEach((page) => {
+    // Select a random position within the current page's items
+    const randomPosition = Math.floor(Math.random() * page.items.length);
 
-  // Insert a new item at a random position within the selected page
-  const randomPosition = Math.floor(Math.random() * selectedPage.items.length);
-  selectedPage.items.splice(randomPosition, 0, {
-    id: selectedPage.items.length,
-    key: uuid(),
-    title: `Item ${selectedPage.items.length + 1}`,
-    src: `https://picsum.photos/200/200?random=${uuid()}`,
+    // Insert a new item at the random position
+    page.items.splice(randomPosition, 0, {
+      id: page.items.length,
+      key: uuid(),
+      title: `Item ${page.items.length + 1}`,
+      src: `https://picsum.photos/200/200?random=${uuid()}`,
+    });
   });
 };
+
 </script>
 <template>
   <div class="h-screen flex flex-col p-4 overflow-hidden">

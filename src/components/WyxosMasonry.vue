@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, nextTick, defineEmits, computed, onBeforeUnmount } from "vue";
-import gsap from 'gsap';
 
 const emit = defineEmits([
   "updatePages",
