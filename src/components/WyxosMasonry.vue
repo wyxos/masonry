@@ -34,7 +34,7 @@ onMounted(async () => {
   if (loadMoreButton.value) {
     observer = new IntersectionObserver(handleIntersection, {
       root: infiniteScroll.value,
-      threshold: 0.1,
+      threshold: 0.8,
     });
     observer.observe(loadMoreButton.value);
   }
@@ -135,7 +135,7 @@ const onRemove = (item) => {
 
 <template>
   <div ref="infiniteScroll"
-       class="infinite-scroll flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scroll">
+       class="infinite-scroll flex-1 flex flex-col overflow-x-hidden overflow-y-auto custom-scroll">
     <p v-if="isLoading && loadingDirection === 'previous'" class="text-center">Loading previous content...</p>
     <transition-group class="grid grid-cols-6 gap-4 infinite-scroll-content relative"
                       tag="div"
