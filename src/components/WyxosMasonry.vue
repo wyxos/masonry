@@ -1,6 +1,7 @@
 <script setup>
 import {ref, onMounted, nextTick, defineEmits, computed, onBeforeUnmount} from "vue";
 import throttle from "lodash/throttle";
+import gsap from 'gsap'
 
 const emit = defineEmits([
   "updatePages",
@@ -22,9 +23,8 @@ const ready = ref(false);
 onMounted(async () => {
   // Emit event to indicate initial content is ready
   const page = await props.load?.();
-  const updatedPages = [page];
+  const updatedPages = [...props.pages, page].filter(Boolean);
   emit("updatePages", updatedPages);
-
 
   ready.value = true;
 
@@ -67,19 +67,21 @@ const onScroll = () => {
 
 const loadNext = async () => {
   if (isLoading.value) return;
+
   isLoading.value = true;
   loadingDirection.value = "next";
 
   const page = await props.loadNext?.();
-  const updatedPages = [...props.pages, page];
+  const updatedPages = [page]
   emit("updatePages", updatedPages);
-  await nextTick(); // Wait for the DOM to be updated after new items are loaded
+
+  await nextTick();
 
   isLoading.value = false;
   loadingDirection.value = "";
 
   // Remove the oldest page if there are more than 5 pages
-  if (props.pages.length > 5) {
+  if (updatedPages.length > 5) {
     const updatedPages = props.pages.slice(1); // Remove the first page
     emit("updatePages", updatedPages); // Emit updated pages to parent
   }
@@ -94,7 +96,8 @@ const loadPrevious = async () => {
   const page = await props.loadPrevious?.();
   const updatedPages = [page, ...props.pages];
   emit("updatePages", updatedPages);
-  await nextTick(); // Wait for the DOM to be updated after new items are loaded
+
+  await nextTick();
 
   isLoading.value = false;
   loadingDirection.value = "";
@@ -108,23 +111,58 @@ const loadPrevious = async () => {
 
 const items = computed(() => {
   return props.pages.reduce((acc, page) => {
-    return acc.concat(page.items);
+    let items = page.items.map((item, pageIndex) => {
+      item.page = page.page
+      item.pageIndex = pageIndex
+
+      return item
+    });
+
+    return acc.concat(items);
   }, []);
 });
 
+function onBeforeEnter(el) {
+  el.style.opacity = 0;
+  el.style.transform = 'translateX(100%)'; // Start off-screen (right side)
+}
 
+function onEnter(el, done) {
+  gsap.to(el, {
+    opacity: 1,
+    transform: 'translateX(0)', // Move to its natural position
+    delay: el.dataset.index * 0.05, // Stagger animation based on index
+    duration: 0.5,
+    onComplete: done
+  });
+}
+
+function onLeave(el, done) {
+  gsap.to(el, {
+    opacity: 0,
+    transform: 'translateX(100%)', // Move out to the right side
+    delay: el.dataset.index * 0.05, // Stagger animation based on index
+    duration: 0.5,
+    onComplete: done
+  });
+}
 </script>
 
 <template>
-  <div ref="infiniteScroll" class="infinite-scroll flex-1 flex flex-col overflow-auto custom-scroll">
+  <div ref="infiniteScroll" class="infinite-scroll flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scroll">
     <p v-if="isLoading && loadingDirection === 'previous'" class="text-center">Loading previous content...</p>
-    <div class="grid grid-cols-6 flex-1" v-if="ready">
-      <div v-for="item in items" :key="item.key" :data-key="item.key">
+    <transition-group class="grid grid-cols-6 flex-1 infinite-scroll-content"
+                      :css="false"
+                      @before-enter="onBeforeEnter"
+                      @enter="onEnter"
+                      @leave="onLeave" tag="div">
+      <div v-for="(item, index) in items" :key="item.key" :data-key="item.key"
+           :data-index="item.pageIndex">
         <slot name="item" :item="item">
           <img :src="item.src" :alt="item.title"/>
         </slot>
       </div>
-    </div>
+    </transition-group>
     <p v-if="!ready">Loading content...</p>
     <p v-if="isLoading && loadingDirection === 'next'" class="text-center">Loading more content...</p>
   </div>
