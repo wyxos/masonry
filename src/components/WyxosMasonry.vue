@@ -1,7 +1,7 @@
 <script setup>
-import {ref, onMounted, nextTick, defineEmits, computed, onBeforeUnmount} from "vue";
+import { ref, onMounted, nextTick, defineEmits, computed, onBeforeUnmount } from "vue";
 import throttle from "lodash/throttle";
-import gsap from 'gsap'
+import gsap from 'gsap';
 
 const emit = defineEmits([
   "updatePages",
@@ -9,16 +9,18 @@ const emit = defineEmits([
 
 const isLoading = ref(false);
 const loadingDirection = ref("");
-
 const props = defineProps({
   load: Function,
   loadNext: Function,
   loadPrevious: Function,
-  pages: Array
+  pages: Array,
+  canLoadMore: Boolean, // Flag indicating if more content can be loaded
 });
 
 const infiniteScroll = ref(null);
+const loadMoreButton = ref(null);
 const ready = ref(false);
+let observer = null;
 
 onMounted(async () => {
   // Emit event to indicate initial content is ready
@@ -28,41 +30,29 @@ onMounted(async () => {
 
   ready.value = true;
 
-  if (infiniteScroll.value) {
-    infiniteScroll.value.addEventListener("scroll", throttle(onScroll, 200));
+  if (loadMoreButton.value) {
+    observer = new IntersectionObserver(handleIntersection, {
+      root: infiniteScroll.value,
+      threshold: 0.1,
+    });
+    observer.observe(loadMoreButton.value);
   }
 });
 
 onBeforeUnmount(() => {
-  if (infiniteScroll.value) {
-    infiniteScroll.value.removeEventListener("scroll", throttle(onScroll, 200));
+  if (loadMoreButton.value && observer) {
+    observer.disconnect();
   }
 });
 
 let previousScrollTop = 0;
 
-const onScroll = () => {
-  if (infiniteScroll.value) {
-    const { scrollTop, scrollHeight, clientHeight } = infiniteScroll.value;
-
-    // Determine if the user is scrolling up or down
-    const isScrollingDown = scrollTop > previousScrollTop;
-
-    // Update previous scroll position
-    previousScrollTop = scrollTop;
-
-    if (isScrollingDown) {
-      if (scrollTop + clientHeight >= scrollHeight - 10 && !isLoading.value) {
-        console.log("Load next");
-        loadNext();
-      }
-    } else {
-      if (scrollTop <= 10 && !isLoading.value) {
-        console.log("Load previous");
-        loadPrevious();
-      }
+const handleIntersection = (entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting && props.canLoadMore && !isLoading.value) {
+      loadNext();
     }
-  }
+  });
 };
 
 const loadNext = async () => {
@@ -72,7 +62,7 @@ const loadNext = async () => {
   loadingDirection.value = "next";
 
   const page = await props.loadNext?.();
-  const updatedPages = [...props.pages, page]
+  const updatedPages = [...props.pages, page];
   emit("updatePages", updatedPages);
 
   await nextTick();
@@ -112,10 +102,10 @@ const loadPrevious = async () => {
 const items = computed(() => {
   return props.pages.reduce((acc, page) => {
     let items = page.items.map((item, pageIndex) => {
-      item.page = page.page
-      item.pageIndex = pageIndex
+      item.page = page.page;
+      item.pageIndex = pageIndex;
 
-      return item
+      return item;
     });
 
     return acc.concat(items);
@@ -133,7 +123,7 @@ function onEnter(el, done) {
     transform: 'translateX(0)', // Move to its natural position
     delay: el.dataset.index * 0.05, // Stagger animation based on index
     duration: 0.5,
-    onComplete: done
+    onComplete: done,
   });
 }
 
@@ -143,13 +133,14 @@ function onLeave(el, done) {
     transform: 'translateX(100%)', // Move out to the right side
     delay: el.dataset.index * 0.05, // Stagger animation based on index
     duration: 0.5,
-    onComplete: done
+    onComplete: done,
   });
 }
 </script>
 
 <template>
-  <div ref="infiniteScroll" class="infinite-scroll flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scroll">
+  <div ref="infiniteScroll"
+       class="infinite-scroll flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scroll">
     <p v-if="isLoading && loadingDirection === 'previous'" class="text-center">Loading previous content...</p>
     <transition-group class="grid grid-cols-6 flex-1 infinite-scroll-content"
                       :css="false"
@@ -164,7 +155,12 @@ function onLeave(el, done) {
       </div>
     </transition-group>
     <p v-if="!ready">Loading content...</p>
-    <p v-if="isLoading && loadingDirection === 'next'" class="text-center">Loading more content...</p>
+    <button ref="loadMoreButton"
+            @click="loadNext"
+            :disabled="isLoading"
+            class="load-more-button">
+      {{ isLoading ? 'Loading next content...' : 'Load more' }}
+    </button>
   </div>
 </template>
 
@@ -186,5 +182,20 @@ function onLeave(el, done) {
   background-color: #4a5568;
   border-radius: 10px;
   border: 2px solid #e2e8f0;
+}
+
+.load-more-button {
+  margin: 1rem auto;
+  padding: 0.5rem 1rem;
+  background-color: #4a5568;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.load-more-button:disabled {
+  background-color: #a0aec0;
+  cursor: not-allowed;
 }
 </style>

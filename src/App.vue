@@ -74,7 +74,7 @@ const handleUpdatePages = (updatedPages) => {
   <div class="h-screen flex flex-col">
     <p>{{ loadedPages }}</p>
     <wyxos-masonry :load="load" :load-next="loadNext" :load-previous="loadPrevious" :pages="pages"
-                   @updatePages="handleUpdatePages">
+                   @updatePages="handleUpdatePages" :can-load-more="true">
       <template #item="{ item }">
         <div>
           <img :src="item.src" :alt="item.title" />
