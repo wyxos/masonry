@@ -75,10 +75,11 @@ const handleUpdatePages = (updatedPages) => {
     <p>{{ loadedPages }}</p>
     <wyxos-masonry :load="load" :load-next="loadNext" :load-previous="loadPrevious" :pages="pages"
                    @updatePages="handleUpdatePages" :can-load-more="true">
-      <template #item="{ item }">
+      <template #item="{ item, onRemove }">
         <div>
           <img :src="item.src" :alt="item.title" />
           {{ item.page}}
+          <button @click="onRemove(item)">Remove</button>
         </div>
       </template>
     </wyxos-masonry>

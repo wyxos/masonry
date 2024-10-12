@@ -146,6 +146,20 @@ function onLeave(el, done) {
     onComplete: done,
   });
 }
+
+const onRemove = (item) => {
+  const pageIndex = item.pageIndex;
+  const page = item.page;
+  const updatedPages = props.pages.map((p) => {
+    if (p.page === page) {
+      p.items.splice(pageIndex, 1);
+    }
+
+    return p;
+  });
+
+  emit("updatePages", updatedPages);
+};
 </script>
 
 <template>
@@ -159,8 +173,9 @@ function onLeave(el, done) {
                       @leave="onLeave" tag="div">
       <div v-for="(item, index) in items" :key="item.key" :data-key="item.key"
            :data-index="item.pageIndex" :data-page="item.page">
-        <slot name="item" :item="item">
+        <slot name="item" :item="item" :onRemove="onRemove">
           <img :src="item.src" :alt="item.title"/>
+          <button @click="onRemove(item)">Remove</button>
         </slot>
       </div>
     </transition-group>
