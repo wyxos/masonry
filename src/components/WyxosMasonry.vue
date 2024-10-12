@@ -23,7 +23,7 @@ const ready = ref(false);
 onMounted(async () => {
   // Emit event to indicate initial content is ready
   const page = await props.load?.();
-  const updatedPages = [...props.pages, page].filter(Boolean);
+  const updatedPages = [page];
   emit("updatePages", updatedPages);
 
   ready.value = true;
@@ -72,7 +72,7 @@ const loadNext = async () => {
   loadingDirection.value = "next";
 
   const page = await props.loadNext?.();
-  const updatedPages = [page]
+  const updatedPages = [...props.pages, page]
   emit("updatePages", updatedPages);
 
   await nextTick();
