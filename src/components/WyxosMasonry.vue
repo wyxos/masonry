@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, nextTick, defineEmits, computed, onBeforeUnmount } from "vue";
-import throttle from "lodash/throttle";
 import gsap from 'gsap';
 
 const emit = defineEmits([
@@ -25,8 +24,10 @@ let observer = null;
 onMounted(async () => {
   // Emit event to indicate initial content is ready
   const page = await props.load?.();
-  const updatedPages = [page];
-  emit("updatePages", updatedPages);
+  if (page) {
+    const updatedPages = [page];
+    emit("updatePages", updatedPages);
+  }
 
   ready.value = true;
 
@@ -45,8 +46,6 @@ onBeforeUnmount(() => {
   }
 });
 
-let previousScrollTop = 0;
-
 const handleIntersection = (entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting && props.canLoadMore && !isLoading.value) {
@@ -62,18 +61,23 @@ const loadNext = async () => {
   loadingDirection.value = "next";
 
   const page = await props.loadNext?.();
-  const updatedPages = [...props.pages, page];
-  emit("updatePages", updatedPages);
+  if (page) {
+    const updatedPages = [...props.pages, page];
+    emit("updatePages", updatedPages);
 
-  await nextTick();
+    await nextTick();
 
-  isLoading.value = false;
-  loadingDirection.value = "";
+    isLoading.value = false;
+    loadingDirection.value = "";
 
-  // Remove the oldest page if there are more than 5 pages
-  if (updatedPages.length > 5) {
-    const updatedPages = props.pages.slice(1); // Remove the first page
-    emit("updatePages", updatedPages); // Emit updated pages to parent
+    // Remove the oldest page if there are more than 5 pages
+    if (updatedPages.length > 5) {
+      const trimmedPages = updatedPages.slice(1); // Remove the first page
+      emit("updatePages", trimmedPages); // Emit updated pages to parent
+    }
+  } else {
+    isLoading.value = false;
+    loadingDirection.value = "";
   }
 };
 
@@ -84,19 +88,21 @@ const loadPrevious = async () => {
 
   // Load previous items
   const page = await props.loadPrevious?.();
-  const updatedPages = [page, ...props.pages];
-  emit("updatePages", updatedPages);
+  if (page) {
+    const updatedPages = [page, ...props.pages];
+    emit("updatePages", updatedPages);
 
-  await nextTick();
+    await nextTick();
+
+    // Remove the last page if there are more than 5 pages
+    if (updatedPages.length > 5) {
+      const trimmedPages = updatedPages.slice(0, -1); // Remove the last page
+      emit("updatePages", trimmedPages); // Emit updated pages to parent
+    }
+  }
 
   isLoading.value = false;
   loadingDirection.value = "";
-
-  // Remove the last page if there are more than 5 pages
-  if (props.pages.length > 5) {
-    const updatedPages = props.pages.slice(0, -1); // Remove the last page
-    emit("updatePages", updatedPages); // Emit updated pages to parent
-  }
 };
 
 const items = computed(() => {
@@ -128,6 +134,10 @@ function onEnter(el, done) {
 }
 
 function onLeave(el, done) {
+  if(props.pages.findIndex(page => page.page === Number(el.dataset.page)) === -1){
+    return done();
+  }
+
   gsap.to(el, {
     opacity: 0,
     transform: 'translateX(100%)', // Move out to the right side
@@ -148,7 +158,7 @@ function onLeave(el, done) {
                       @enter="onEnter"
                       @leave="onLeave" tag="div">
       <div v-for="(item, index) in items" :key="item.key" :data-key="item.key"
-           :data-index="item.pageIndex">
+           :data-index="item.pageIndex" :data-page="item.page">
         <slot name="item" :item="item">
           <img :src="item.src" :alt="item.title"/>
         </slot>

@@ -78,6 +78,7 @@ const handleUpdatePages = (updatedPages) => {
       <template #item="{ item }">
         <div>
           <img :src="item.src" :alt="item.title" />
+          {{ item.page}}
         </div>
       </template>
     </wyxos-masonry>
