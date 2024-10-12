@@ -118,35 +118,6 @@ const items = computed(() => {
   }, []);
 });
 
-function onBeforeEnter(el) {
-  el.style.opacity = 0;
-  el.style.transform = 'translateX(100%)'; // Start off-screen (right side)
-}
-
-function onEnter(el, done) {
-  gsap.to(el, {
-    opacity: 1,
-    transform: 'translateX(0)', // Move to its natural position
-    delay: el.dataset.index * 0.05, // Stagger animation based on index
-    duration: 0.5,
-    onComplete: done,
-  });
-}
-
-function onLeave(el, done) {
-  if(props.pages.findIndex(page => page.page === Number(el.dataset.page)) === -1){
-    return done();
-  }
-
-  gsap.to(el, {
-    opacity: 0,
-    transform: 'translateX(100%)', // Move out to the right side
-    delay: el.dataset.index * 0.05, // Stagger animation based on index
-    duration: 0.5,
-    onComplete: done,
-  });
-}
-
 const onRemove = (item) => {
   const pageIndex = item.pageIndex;
   const page = item.page;
@@ -154,27 +125,24 @@ const onRemove = (item) => {
     if (p.page === page) {
       p.items.splice(pageIndex, 1);
     }
-
     return p;
   });
 
   emit("updatePages", updatedPages);
 };
+
 </script>
 
 <template>
   <div ref="infiniteScroll"
        class="infinite-scroll flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scroll">
     <p v-if="isLoading && loadingDirection === 'previous'" class="text-center">Loading previous content...</p>
-    <transition-group class="grid grid-cols-6 flex-1 infinite-scroll-content"
-                      :css="false"
-                      @before-enter="onBeforeEnter"
-                      @enter="onEnter"
-                      @leave="onLeave" tag="div">
-      <div v-for="(item, index) in items" :key="item.key" :data-key="item.key"
-           :data-index="item.pageIndex" :data-page="item.page">
+    <transition-group class="grid grid-cols-6 gap-4 infinite-scroll-content relative"
+                      tag="div"
+                      name="list">
+      <div v-for="(item, index) in items" :key="item.key" :data-index="item.pageIndex" class="grid-item">
         <slot name="item" :item="item" :onRemove="onRemove">
-          <img :src="item.src" :alt="item.title"/>
+          <img :src="item.src" :alt="item.title" />
           <button @click="onRemove(item)">Remove</button>
         </slot>
       </div>
@@ -223,4 +191,29 @@ const onRemove = (item) => {
   background-color: #a0aec0;
   cursor: not-allowed;
 }
+
+/* Transition classes for list enter/leave/move animations */
+.list-move,
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+/* Initial state when list item enters */
+.list-enter-from {
+  opacity: 0;
+  transform: scaleY(0.01) translate(30px, 0);
+}
+
+/* Final state when list item leaves */
+.list-leave-to {
+  opacity: 0;
+  transform: scaleY(0.01) translate(30px, 0);
+}
+
+/* Ensure leaving items are taken out of the layout flow */
+.list-leave-active {
+  position: absolute;
+}
+
 </style>
