@@ -1,5 +1,5 @@
 <script setup>
-import {ref, onMounted, nextTick, defineEmits, computed} from "vue";
+import {ref, onMounted, nextTick, defineEmits, computed, onBeforeUnmount} from "vue";
 import throttle from "lodash/throttle";
 
 const emit = defineEmits([
@@ -30,6 +30,12 @@ onMounted(async () => {
 
   if (infiniteScroll.value) {
     infiniteScroll.value.addEventListener("scroll", throttle(onScroll, 200));
+  }
+});
+
+onBeforeUnmount(() => {
+  if (infiniteScroll.value) {
+    infiniteScroll.value.removeEventListener("scroll", throttle(onScroll, 200));
   }
 });
 
@@ -105,6 +111,8 @@ const items = computed(() => {
     return acc.concat(page.items);
   }, []);
 });
+
+
 </script>
 
 <template>

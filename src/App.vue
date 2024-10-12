@@ -6,12 +6,13 @@ import { computed, onMounted, ref } from "vue";
 const pages = ref([]);
 
 const loadNext = async () => {
+  let pageValue = pages.value[pages.value.length - 1].page + 1;
   const page = {
-    page: pages.value[pages.value.length - 1].page + 1,
+    page: pageValue,
     items: Array.from({ length: 48 }, (_, index) => ({
       id: index,
       key: uuid(),
-      title: `Item ${index + 1}`,
+      title: `Item ${(pageValue * index) + 1}`,
       src: `https://picsum.photos/200/200?random=${index}`,
     })),
   };
@@ -25,12 +26,13 @@ const loadNext = async () => {
 const loadPrevious = async () => {
   if (pages.value[0].page <= 1) return;
 
+  let pageValue = pages.value[0].page - 1;
   const page = {
-    page: pages.value[0].page - 1,
+    page: pageValue,
     items: Array.from({ length: 48 }, (_, index) => ({
       id: index,
       key: uuid(),
-      title: `Item ${index + 1}`,
+      title: `Item ${(pageValue * index) + 1}`,
       src: `https://picsum.photos/200/200?random=${index}`,
     })),
   };
