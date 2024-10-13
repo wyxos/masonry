@@ -14,6 +14,7 @@ export default defineConfig({
       // External dependencies to exclude from the bundle
       external: ['vue'],
       output: {
+        exports: 'named',
         globals: {
           vue: 'Vue'
         }
