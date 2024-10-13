@@ -13,6 +13,10 @@ const props = defineProps({
   loadPrevious: Function,
   pages: Array,
   canLoadMore: Boolean, // Flag indicating if more content can be loaded
+  containerClass: { type: String, default: "infinite-scroll flex-1 flex flex-col overflow-x-hidden overflow-y-auto custom-scroll" }, // Customizable container class
+  buttonClass: { type: String, default: "load-more-button" }, // Customizable button class
+  loaderClass: { type: String, default: "text-center" }, // Customizable loader class
+  gridItemClass: { type: String, default: "grid-item" }, // Customizable grid item class
 });
 
 const infiniteScroll = ref(null);
@@ -133,26 +137,33 @@ const onRemove = (item) => {
 </script>
 
 <template>
-  <div ref="infiniteScroll"
-       class="infinite-scroll flex-1 flex flex-col overflow-x-hidden overflow-y-auto custom-scroll">
-    <p v-if="isLoading && loadingDirection === 'previous'" class="text-center">Loading previous content...</p>
-    <transition-group class="grid grid-cols-6 gap-4 infinite-scroll-content relative"
-                      tag="div"
-                      name="list">
-      <div v-for="(item, index) in items" :key="item.key" :data-index="item.pageIndex" class="grid-item">
+  <div ref="infiniteScroll" :class="containerClass">
+    <!-- Slot for loader before content, if needed -->
+    <slot name="loader" v-if="isLoading && loadingDirection === 'previous'">
+      <p :class="loaderClass">Loading previous content...</p>
+    </slot>
+
+    <transition-group class="grid grid-cols-6 gap-4 infinite-scroll-content relative" tag="div" name="w-masonry-list">
+      <div v-for="(item, index) in items" :key="item.key" :data-index="item.pageIndex" :class="gridItemClass">
+        <!-- Slot for rendering the item -->
         <slot name="item" :item="item" :onRemove="onRemove">
           <img :src="item.src" :alt="item.title" />
           <button @click="onRemove(item)">Remove</button>
         </slot>
       </div>
     </transition-group>
-    <p v-if="!ready">Loading content...</p>
-    <button ref="loadMoreButton"
-            @click="loadNext"
-            :disabled="isLoading"
-            class="load-more-button">
-      {{ isLoading ? 'Loading next content...' : 'Load more' }}
-    </button>
+
+    <!-- Slot for loader after content -->
+    <slot name="loader" v-if="!ready">
+      <p :class="loaderClass">Loading content...</p>
+    </slot>
+
+    <!-- Customizable load more button -->
+    <slot name="load-more-button">
+      <button ref="loadMoreButton" @click="loadNext" :disabled="isLoading" :class="buttonClass">
+        {{ isLoading ? 'Loading next content...' : 'Load more' }}
+      </button>
+    </slot>
   </div>
 </template>
 
@@ -191,28 +202,19 @@ const onRemove = (item) => {
   cursor: not-allowed;
 }
 
-/* Transition classes for list enter/leave/move animations */
-.list-move,
-.list-enter-active,
-.list-leave-active {
+.w-masonry-list-move,
+.w-masonry-list-enter-active,
+.w-masonry-list-leave-active {
   transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
-/* Initial state when list item enters */
-.list-enter-from {
+.w-masonry-list-enter-from,
+.w-masonry-list-leave-to {
   opacity: 0;
   transform: scaleY(0.01) translate(30px, 0);
 }
 
-/* Final state when list item leaves */
-.list-leave-to {
-  opacity: 0;
-  transform: scaleY(0.01) translate(30px, 0);
-}
-
-/* Ensure leaving items are taken out of the layout flow */
-.list-leave-active {
+.w-masonry-list-leave-active {
   position: absolute;
 }
-
 </style>
