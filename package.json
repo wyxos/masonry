@@ -1,5 +1,5 @@
 {
-  "name": "wyxos-masonry",
+  "name": "@wyxos/masonry",
   "private": false,
   "version": "1.0.4",
   "description": "A masonry layout component for Vue 3.",
