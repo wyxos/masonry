@@ -1,7 +1,7 @@
 {
   "name": "wyxos-masonry",
   "private": false,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A masonry layout component for Vue 3.",
   "main": "dist/wyxos-masonry.umd.js",
   "module": "dist/wyxos-masonry.es.js",
