@@ -1,106 +1,123 @@
-import { ref as i, onMounted as I, onBeforeUnmount as L, nextTick as w, computed as M, openBlock as d, createElementBlock as u, createCommentVNode as k, createVNode as B, TransitionGroup as N, withCtx as C, Fragment as F, renderList as S, renderSlot as E, createElementVNode as _, toDisplayString as R } from "vue";
-const V = (g, f) => {
-  const l = g.__vccOpts || g;
-  for (const [n, r] of f)
-    l[n] = r;
-  return l;
-}, D = {
-  key: 0,
-  class: "text-center"
-}, O = ["data-index"], T = ["src", "alt"], W = ["onClick"], $ = { key: 1 }, A = ["disabled"], G = {
+import { ref as d, onMounted as _, onBeforeUnmount as w, nextTick as L, computed as M, openBlock as y, createElementBlock as x, normalizeClass as u, renderSlot as m, createElementVNode as g, createCommentVNode as P, createVNode as N, TransitionGroup as B, withCtx as $, Fragment as F, renderList as z, toDisplayString as E } from "vue";
+const R = (s, p) => {
+  const r = s.__vccOpts || s;
+  for (const [o, c] of p)
+    r[o] = c;
+  return r;
+}, V = ["data-index"], D = ["src", "alt"], O = ["onClick"], T = ["disabled"], W = {
   __name: "WyxosMasonry",
   props: {
     load: Function,
     loadNext: Function,
     loadPrevious: Function,
     pages: Array,
-    canLoadMore: Boolean
+    canLoadMore: Boolean,
     // Flag indicating if more content can be loaded
+    containerClass: { type: String, default: "infinite-scroll flex-1 flex flex-col overflow-x-hidden overflow-y-auto custom-scroll" },
+    // Customizable container class
+    buttonClass: { type: String, default: "load-more-button" },
+    // Customizable button class
+    loaderClass: { type: String, default: "text-center" },
+    // Customizable loader class
+    gridItemClass: { type: String, default: "grid-item" },
+    // Customizable grid item class
+    cacheSize: { type: Number, default: 5 }
+    // Number of pages to cache
   },
   emits: [
     "updatePages"
   ],
-  setup(g, { emit: f }) {
-    const l = f, n = i(!1), r = i(""), a = g, m = i(null), v = i(null), x = i(!1);
-    let p = null;
-    I(async () => {
-      var o;
-      const t = await ((o = a.load) == null ? void 0 : o.call(a));
-      t && l("updatePages", [t]), x.value = !0, v.value && (p = new IntersectionObserver(P, {
-        root: m.value,
+  setup(s, { emit: p }) {
+    const r = p, o = d(!1), c = d(""), n = s, C = d(null), f = d(null), h = d(!1);
+    let v = null;
+    _(async () => {
+      var a;
+      const e = await ((a = n.load) == null ? void 0 : a.call(n));
+      e && r("updatePages", [e]), h.value = !0, f.value && (v = new IntersectionObserver(I, {
+        root: C.value,
         threshold: 0.8
-      }), p.observe(v.value));
-    }), L(() => {
-      v.value && p && p.disconnect();
+      }), v.observe(f.value));
+    }), w(() => {
+      f.value && v && v.disconnect();
     });
-    const P = (t) => {
-      t.forEach((o) => {
-        o.isIntersecting && a.canLoadMore && !n.value && y();
+    const I = (e) => {
+      e.forEach((a) => {
+        a.isIntersecting && n.canLoadMore && !o.value && k();
       });
-    }, y = async () => {
-      var o;
-      if (n.value) return;
-      n.value = !0, r.value = "next";
-      const t = await ((o = a.loadNext) == null ? void 0 : o.call(a));
-      if (t) {
-        const e = [...a.pages, t];
-        if (l("updatePages", e), await w(), n.value = !1, r.value = "", e.length > 5) {
-          const s = e.slice(1);
-          l("updatePages", s);
+    }, k = async () => {
+      var a;
+      if (o.value) return;
+      o.value = !0, c.value = "next";
+      const e = await ((a = n.loadNext) == null ? void 0 : a.call(n));
+      if (e) {
+        const t = [...n.pages, e];
+        if (r("updatePages", t), await L(), o.value = !1, c.value = "", t.length > n.cacheSize) {
+          const l = t.slice(1);
+          r("updatePages", l);
         }
       } else
-        n.value = !1, r.value = "";
-    }, b = M(() => a.pages.reduce((t, o) => {
-      let e = o.items.map((s, c) => (s.page = o.page, s.pageIndex = c, s));
-      return t.concat(e);
-    }, [])), h = (t) => {
-      const o = t.pageIndex, e = t.page, s = a.pages.map((c) => (c.page === e && c.items.splice(o, 1), c));
-      l("updatePages", s);
+        o.value = !1, c.value = "";
+    }, S = M(() => n.pages.reduce((e, a) => {
+      let t = a.items.map((l, i) => (l.page = a.page, l.pageIndex = i, l));
+      return e.concat(t);
+    }, [])), b = (e) => {
+      const a = e.pageIndex, t = e.page, l = n.pages.map((i) => (i.page === t && i.items.splice(a, 1), i));
+      r("updatePages", l);
     };
-    return (t, o) => (d(), u("div", {
+    return (e, a) => (y(), x("div", {
       ref_key: "infiniteScroll",
-      ref: m,
-      class: "infinite-scroll flex-1 flex flex-col overflow-x-hidden overflow-y-auto custom-scroll"
+      ref: C,
+      class: u(s.containerClass)
     }, [
-      n.value && r.value === "previous" ? (d(), u("p", D, "Loading previous content...")) : k("", !0),
-      B(N, {
+      o.value && c.value === "previous" ? m(e.$slots, "loader", { key: 0 }, () => [
+        g("p", {
+          class: u(s.loaderClass)
+        }, "Loading previous content...", 2)
+      ], !0) : P("", !0),
+      N(B, {
         class: "grid grid-cols-6 gap-4 infinite-scroll-content relative",
         tag: "div",
-        name: "list"
+        name: "w-masonry-list"
       }, {
-        default: C(() => [
-          (d(!0), u(F, null, S(b.value, (e, s) => (d(), u("div", {
-            key: e.key,
-            "data-index": e.pageIndex,
-            class: "grid-item"
+        default: $(() => [
+          (y(!0), x(F, null, z(S.value, (t, l) => (y(), x("div", {
+            key: t.key,
+            "data-index": t.pageIndex,
+            class: u(s.gridItemClass)
           }, [
-            E(t.$slots, "item", {
-              item: e,
-              onRemove: h
+            m(e.$slots, "item", {
+              item: t,
+              onRemove: b
             }, () => [
-              _("img", {
-                src: e.src,
-                alt: e.title
-              }, null, 8, T),
-              _("button", {
-                onClick: (c) => h(e)
-              }, "Remove", 8, W)
+              g("img", {
+                src: t.src,
+                alt: t.title
+              }, null, 8, D),
+              g("button", {
+                onClick: (i) => b(t)
+              }, "Remove", 8, O)
             ], !0)
-          ], 8, O))), 128))
+          ], 10, V))), 128))
         ]),
         _: 3
       }),
-      x.value ? k("", !0) : (d(), u("p", $, "Loading content...")),
-      _("button", {
-        ref_key: "loadMoreButton",
-        ref: v,
-        onClick: y,
-        disabled: n.value,
-        class: "load-more-button"
-      }, R(n.value ? "Loading next content..." : "Load more"), 9, A)
-    ], 512));
+      h.value ? P("", !0) : m(e.$slots, "loader", { key: 1 }, () => [
+        g("p", {
+          class: u(s.loaderClass)
+        }, "Loading content...", 2)
+      ], !0),
+      m(e.$slots, "load-more-button", {}, () => [
+        g("button", {
+          ref_key: "loadMoreButton",
+          ref: f,
+          onClick: k,
+          disabled: o.value,
+          class: u(s.buttonClass)
+        }, E(o.value ? "Loading next content..." : "Load more"), 11, T)
+      ], !0)
+    ], 2));
   }
-}, j = /* @__PURE__ */ V(G, [["__scopeId", "data-v-b49e30c0"]]);
+}, G = /* @__PURE__ */ R(W, [["__scopeId", "data-v-dc36e1e0"]]);
 export {
-  j as default
+  G as default
 };
