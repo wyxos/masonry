@@ -17,6 +17,7 @@ const props = defineProps({
   buttonClass: { type: String, default: "load-more-button" }, // Customizable button class
   loaderClass: { type: String, default: "text-center" }, // Customizable loader class
   gridItemClass: { type: String, default: "grid-item" }, // Customizable grid item class
+  cacheSize: { type: Number, default: 5 }, // Number of pages to cache
 });
 
 const infiniteScroll = ref(null);
@@ -74,7 +75,7 @@ const loadNext = async () => {
     loadingDirection.value = "";
 
     // Remove the oldest page if there are more than 5 pages
-    if (updatedPages.length > 5) {
+    if (updatedPages.length > props.cacheSize) {
       const trimmedPages = updatedPages.slice(1); // Remove the first page
       emit("updatePages", trimmedPages); // Emit updated pages to parent
     }
