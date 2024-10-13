@@ -32,14 +32,14 @@ const execSyncOut = (command) => {
 // Run linting if script is available
 if (packageJson.scripts.lint) {
   execSyncOut("npm run lint");
+}
 
 // Check for changes
-  const status = await git.status();
-  if (status.modified.length > 0) {
-    await git.add(".");
-    // Commit the changes
-    await git.commit("chore: linted");
-  }
+const status = await git.status();
+if (status.modified.length > 0) {
+  await git.add(".");
+  // Commit the changes
+  await git.commit("chore: linted");
 }
 
 // Build the project
@@ -54,7 +54,7 @@ const commitFiles = async () => {
 };
 
 const pushChanges = async () => {
-  await git.push("origin", "main");
+  await git.push("origin", "master");
   await git.pushTags("origin");
 };
 
