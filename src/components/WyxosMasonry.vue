@@ -67,19 +67,19 @@ const loadNext = async () => {
 
   const page = await props.loadNext?.();
   if (page) {
-    const updatedPages = [...props.pages, page];
-    emit("update:modelValue", updatedPages);
+    // Remove the oldest page if there are more than 5 pages
+    if ([...props.modelValue, page].length > props.cacheSize) {
+      const trimmedPages = props.modelValue.slice(1); // Remove the first page
+      emit("update:modelValue", trimmedPages); // Emit updated pages to parent
+    }
 
     await nextTick();
 
+    const updatedPages = [...props.modelValue, page];
+    emit("update:modelValue", updatedPages);
+
     isLoading.value = false;
     loadingDirection.value = "";
-
-    // Remove the oldest page if there are more than 5 pages
-    if (updatedPages.length > props.cacheSize) {
-      const trimmedPages = updatedPages.slice(1); // Remove the first page
-      emit("update:modelValue", trimmedPages); // Emit updated pages to parent
-    }
   } else {
     isLoading.value = false;
     loadingDirection.value = "";
