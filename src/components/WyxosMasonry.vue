@@ -2,7 +2,7 @@
 import { ref, onMounted, nextTick, defineEmits, computed, onBeforeUnmount } from "vue";
 
 const emit = defineEmits([
-  "updatePages",
+  "update:modelValue",
 ]);
 
 const isLoading = ref(false);
@@ -11,13 +11,14 @@ const props = defineProps({
   load: Function,
   loadNext: Function,
   loadPrevious: Function,
-  pages: Array,
+  modelValue: Array,
   canLoadMore: Boolean, // Flag indicating if more content can be loaded
   containerClass: { type: String, default: "infinite-scroll flex-1 flex flex-col overflow-x-hidden overflow-y-auto custom-scroll" }, // Customizable container class
   buttonClass: { type: String, default: "load-more-button" }, // Customizable button class
   loaderClass: { type: String, default: "text-center" }, // Customizable loader class
   gridItemClass: { type: String, default: "grid-item" }, // Customizable grid item class
   cacheSize: { type: Number, default: 5 }, // Number of pages to cache
+  primaryKey: 'id',
 });
 
 const infiniteScroll = ref(null);
@@ -30,7 +31,7 @@ onMounted(async () => {
   const page = await props.load?.();
   if (page) {
     const updatedPages = [page];
-    emit("updatePages", updatedPages);
+    emit("update:modelValue", updatedPages);
   }
 
   ready.value = true;
@@ -67,7 +68,7 @@ const loadNext = async () => {
   const page = await props.loadNext?.();
   if (page) {
     const updatedPages = [...props.pages, page];
-    emit("updatePages", updatedPages);
+    emit("update:modelValue", updatedPages);
 
     await nextTick();
 
@@ -77,7 +78,7 @@ const loadNext = async () => {
     // Remove the oldest page if there are more than 5 pages
     if (updatedPages.length > props.cacheSize) {
       const trimmedPages = updatedPages.slice(1); // Remove the first page
-      emit("updatePages", trimmedPages); // Emit updated pages to parent
+      emit("update:modelValue", trimmedPages); // Emit updated pages to parent
     }
   } else {
     isLoading.value = false;
@@ -93,15 +94,15 @@ const loadPrevious = async () => {
   // Load previous items
   const page = await props.loadPrevious?.();
   if (page) {
-    const updatedPages = [page, ...props.pages];
-    emit("updatePages", updatedPages);
+    const updatedPages = [page, ...props.modelValue];
+    emit("update:modelValue", updatedPages);
 
     await nextTick();
 
     // Remove the last page if there are more than 5 pages
     if (updatedPages.length > 5) {
       const trimmedPages = updatedPages.slice(0, -1); // Remove the last page
-      emit("updatePages", trimmedPages); // Emit updated pages to parent
+      emit("update:modelValue", trimmedPages); // Emit updated pages to parent
     }
   }
 
@@ -110,7 +111,7 @@ const loadPrevious = async () => {
 };
 
 const items = computed(() => {
-  return props.pages.reduce((acc, page) => {
+  return props.modelValue.reduce((acc, page) => {
     let items = page.items.map((item, pageIndex) => {
       item.page = page.page;
       item.pageIndex = pageIndex;
@@ -125,14 +126,14 @@ const items = computed(() => {
 const onRemove = (item) => {
   const pageIndex = item.pageIndex;
   const page = item.page;
-  const updatedPages = props.pages.map((p) => {
+  const updatedPages = props.modelValue.map((p) => {
     if (p.page === page) {
       p.items.splice(pageIndex, 1);
     }
     return p;
   });
 
-  emit("updatePages", updatedPages);
+  emit("update:modelValue", updatedPages);
 };
 
 </script>
@@ -145,7 +146,7 @@ const onRemove = (item) => {
     </slot>
 
     <transition-group class="grid grid-cols-6 gap-4 infinite-scroll-content relative" tag="div" name="w-masonry-list">
-      <div v-for="(item, index) in items" :key="item.key" :data-index="item.pageIndex" :class="gridItemClass">
+      <div v-for="(item, index) in items" :key="`${item[primaryKey]}`" :data-index="item.pageIndex" :class="gridItemClass">
         <!-- Slot for rendering the item -->
         <slot name="item" :item="item" :onRemove="onRemove">
           <img :src="item.src" :alt="item.title" />

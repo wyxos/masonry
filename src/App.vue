@@ -102,10 +102,10 @@ const onAdd = () => {
           :load="load"
           :load-next="loadNext"
           :load-previous="loadPrevious"
-          :pages="pages"
-          @updatePages="handleUpdatePages"
+          v-model="pages"
           :can-load-more="true"
           class="w-full pr-4"
+          primary-key="key"
       >
         <template #item="{ item, onRemove }">
           <div class="item-card p-2 bg-white rounded shadow-sm">
