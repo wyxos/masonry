@@ -158,7 +158,7 @@ def generate_overview(generated_docs, project_dir):
     if use_openai:
         # Use OpenAI API with new format
         completion = openai_client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=2000,
             temperature=0.5
