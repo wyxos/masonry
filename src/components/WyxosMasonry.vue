@@ -8,10 +8,10 @@ const emit = defineEmits([
 const isLoading = ref(false);
 const loadingDirection = ref("");
 const props = defineProps({
-  load: Function,
-  loadNext: Function,
-  loadPrevious: Function,
-  modelValue: Array,
+  load: { type: Function, required: true },
+  loadNext: { type: Function, required: true },
+  loadPrevious: { type: Function, required: true },
+  modelValue: { type: Array, required: true },
   canLoadMore: Boolean, // Flag indicating if more content can be loaded
   containerClass: { type: String, default: "infinite-scroll flex-1 flex flex-col overflow-x-hidden overflow-y-auto custom-scroll" }, // Customizable container class
   buttonClass: { type: String, default: "load-more-button" }, // Customizable button class
@@ -27,14 +27,23 @@ const ready = ref(false);
 let observer = null;
 
 onMounted(async () => {
+  emit("update:modelValue", []);
+
+  ready.value = false;
+
   // Emit event to indicate initial content is ready
-  const page = await props.load?.();
+  const page = await props.load();
+
+  console.log('page', page)
+
   if (page) {
     const updatedPages = [page];
     emit("update:modelValue", updatedPages);
   }
 
   ready.value = true;
+
+  await nextTick();
 
   if (loadMoreButton.value) {
     observer = new IntersectionObserver(handleIntersection, {
@@ -46,7 +55,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  if (loadMoreButton.value && observer) {
+  if (observer) {
     observer.disconnect();
   }
 });
@@ -60,16 +69,19 @@ const handleIntersection = (entries) => {
 };
 
 const loadNext = async () => {
-  if (isLoading.value) return;
+  let canLoadNext = ready && !isLoading.value && items.value.length > 0;
+  if (!canLoadNext) return;
 
   isLoading.value = true;
   loadingDirection.value = "next";
 
-  const page = await props.loadNext?.();
+  const page = await props.loadNext();
+
   if (page) {
     // Remove the oldest page if there are more than 5 pages
     if ([...props.modelValue, page].length > props.cacheSize) {
-      const trimmedPages = props.modelValue.slice(1); // Remove the first page
+      // Remove the first page but do not append the new one yet
+      const trimmedPages = props.modelValue.slice(1);
       emit("update:modelValue", trimmedPages); // Emit updated pages to parent
     }
 
@@ -92,7 +104,7 @@ const loadPrevious = async () => {
   loadingDirection.value = "previous";
 
   // Load previous items
-  const page = await props.loadPrevious?.();
+  const page = await props.loadPrevious();
   if (page) {
     const updatedPages = [page, ...props.modelValue];
     emit("update:modelValue", updatedPages);
