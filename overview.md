@@ -1,25 +1,22 @@
-**Project Overview**
-=====================
+# Project Overview
 
-The project is a Vue.js application that utilizes the `WyxosMasonry` component to display items with random positioning in an infinite scrolling manner. The application provides features for adding new items, loading more items, and removing existing items.
+## Project Purpose
 
-### Project Purpose
+This project is a Vue.js application that implements an infinite scrolling masonry-style grid. The grid allows for dynamic loading of items, both forward and backward, and supports removal of items. The main purpose of this project is to provide a user-friendly interface for browsing a large number of items in a compact, visually pleasing layout.
 
-The primary purpose of this project is to demonstrate a functional and interactive masonry layout component using Vue.js. The `WyxosMasonry` component serves as the core logic and UI for the app, handling infinite scrolling and content rendering.
+## Key Features
 
-### Key Features
+- **Infinite Scrolling**: The application supports infinite scrolling, allowing users to browse through a large number of items without having to click on pagination buttons. The scrolling can be both ways - forward and backward.
+- **Masonry Layout**: The items are displayed in a masonry-style grid, which is a popular layout style for image galleries and portfolios. It places elements in optimal position based on available vertical space, sort of like a mason fitting stones in a wall.
+- **Dynamic Loading**: The application dynamically loads items as the user scrolls, providing a seamless browsing experience. It uses the Intersection Observer API to detect when the user has scrolled near the end of the current set of items, and then loads the next set.
+- **Item Removal**: Users can remove items from the grid. This functionality is implemented in the `WyxosMasonry.vue` component.
 
-*   **Infinite Scrolling**: The application utilizes the `WyxosMasonry` component to load more content when the user reaches the end of a page.
-*   **Random Item Positioning**: Each item in the masonry layout has a random position, providing a visually appealing and dynamic display.
-*   **Adding New Items**: The application allows users to add new items to the masonry layout using the `onAdd` function.
-*   **Loading More Content**: Users can load more content by clicking buttons or reaching the end of a page.
+## Summary
 
-### Summary
+The project consists of three main files:
 
-The project consists of three main components:
+- `App.vue`: This is the main component file that loads and manages a list of items in a masonry layout using the `WyxosMasonry` component. It provides functionality to load initial items, load next and previous pages of items, and add new items at random positions.
+- `main.js`: This is the entry point of the Vue.js application. It's responsible for creating and mounting the main Vue instance (App) to the HTML.
+- `WyxosMasonry.vue`: This is a Vue.js component that provides an infinite scrolling masonry-style grid of items. It allows for dynamic loading of new items, removal of items, and customization of the grid's appearance.
 
-1.  `App.vue`: The main application component that sets up the Vue instance and mounts it to the DOM.
-2.  `main.js`: The entry point for the Vue application, which creates a new instance of the app and sets up its basic structure.
-3.  `WyxosMasonry.vue`: A custom Vue component designed to handle infinite scrolling and content rendering for the masonry layout.
-
-These components work together to provide an interactive and dynamic user interface, showcasing the capabilities of the `WyxosMasonry` component.
+The `App.vue` component is the entry point of the application and it renders the `WyxosMasonry` component. The `WyxosMasonry` component is responsible for the masonry layout and infinite scrolling functionality. The `main.js` file initializes the Vue application and mounts it to the DOM.

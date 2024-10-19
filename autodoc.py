@@ -1,10 +1,21 @@
 import os
 import requests
-import json
 import pathspec  # Install using `pip install pathspec`
+from dotenv import load_dotenv  # Install using `pip install python-dotenv`
+from openai import OpenAI  # Import OpenAI client
 
-# Ollama API URL
-OLLAMA_API_URL = "http://localhost:11434/api/generate"
+# Load environment variables from .env file
+load_dotenv()
+
+# Retrieve OpenAI API key and Ollama API URL from environment variables
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OLLAMA_API_URL = os.getenv("OLLAMA_API_URL")
+
+# Instantiate OpenAI client
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
+
+# Configuration: Switch between Ollama and OpenAI APIs
+use_openai = True  # Set to True to use OpenAI API, False to use Ollama
 
 # Load .gitignore and return a PathSpec object
 def load_gitignore(project_dir):
@@ -15,7 +26,7 @@ def load_gitignore(project_dir):
         return pathspec.PathSpec.from_lines('gitwildmatch', gitignore_patterns.splitlines())
     return None
 
-# Define a function to generate documentation for a file using Ollama
+# Define a function to generate documentation for a file
 def generate_documentation(file_content, file_name, relative_path):
     prompt = f"""
     Please generate concise markdown documentation for the following file named `{file_name}`, which is part of a larger software project. The documentation should include:
@@ -32,20 +43,31 @@ def generate_documentation(file_content, file_name, relative_path):
     ```
     """
 
-    # Send the request to the Ollama API
-    response = requests.post(
-        OLLAMA_API_URL,
-        json={
-            "model": "llama3.2",
-            "prompt": prompt,
-            "stream": False  # Disable streaming for simplicity
-        }
-    )
-
-    if response.status_code == 200:
-        return response.json().get("response", "No response from model")
+    if use_openai:
+        # Use OpenAI API with new format
+        completion = openai_client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1000,
+            temperature=0.5
+        )
+        # Access response text
+        return completion.choices[0].message.content
     else:
-        return f"Error: {response.status_code}, {response.text}"
+        # Use Ollama API
+        response = requests.post(
+            OLLAMA_API_URL,
+            json={
+                "model": "llama3.2",
+                "prompt": prompt,
+                "stream": False  # Disable streaming for simplicity
+            }
+        )
+
+        if response.status_code == 200:
+            return response.json().get("response", "No response from model")
+        else:
+            return f"Error: {response.status_code}, {response.text}"
 
 # Function to check if a file matches exclusion patterns
 def should_exclude_file(relative_path, file_name):
@@ -55,8 +77,7 @@ def should_exclude_file(relative_path, file_name):
     # Patterns to exclude files
     excluded_patterns = [
         lambda f: f.endswith('.test.js'),  # Files ending with '.test.js'
-        lambda f: f.endswith('.config.js'),  # Files ending with '.config.js'
-        lambda f: f == 'dist',  # Exclude dist directories
+        lambda f: f.endswith('.config.js') and '/' not in relative_path,  # Files ending with '.config.js' only if in root
         lambda f: 'dist/' in relative_path  # Exclude files within 'dist' directories
     ]
 
@@ -100,7 +121,7 @@ def generate_docs_for_project(project_dir):
                 with open(file_path, 'r') as f:
                     file_content = f.read()
 
-                # Generate documentation using Ollama
+                # Generate documentation using the chosen LLM
                 documentation = generate_documentation(file_content, file, relative_path)
 
                 # Include the relative path in the markdown
@@ -134,20 +155,30 @@ def generate_overview(generated_docs, project_dir):
     {combined_docs}
     """
 
-    # Send the request to the Ollama API
-    response = requests.post(
-        OLLAMA_API_URL,
-        json={
-            "model": "llama3.2",
-            "prompt": prompt,
-            "stream": False  # Disable streaming for simplicity
-        }
-    )
-
-    if response.status_code == 200:
-        overview_content = response.json().get("response", "No response from model")
+    if use_openai:
+        # Use OpenAI API with new format
+        completion = openai_client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=2000,
+            temperature=0.5
+        )
+        overview_content = completion.choices[0].message.content
     else:
-        overview_content = f"Error: {response.status_code}, {response.text}"
+        # Use Ollama API
+        response = requests.post(
+            OLLAMA_API_URL,
+            json={
+                "model": "llama3.2",
+                "prompt": prompt,
+                "stream": False  # Disable streaming for simplicity
+            }
+        )
+
+        if response.status_code == 200:
+            overview_content = response.json().get("response", "No response from model")
+        else:
+            overview_content = f"Error: {response.status_code}, {response.text}"
 
     # Save the overview markdown file
     overview_file_path = os.path.join(project_dir, "overview.md")

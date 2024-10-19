@@ -2,25 +2,24 @@
 
 **File Path**: `src\App.vue`
 
-**App.vue**
-================
+# App.vue
 
-### File Purpose
+## File Purpose
+`App.vue` is the main component file in a Vue application. This file is responsible for loading and managing a list of items in a masonry layout using the `WyxosMasonry` component. It provides functionality to load initial items, load next and previous pages of items, and add new items at random positions.
 
-This file contributes to the project by providing a functional and interactive masonry layout component, `WyxosMasonry`, which can be used to display items with random positioning. The component also includes features for adding new items, loading more items, and removing existing items.
+## Key Functions/Classes
 
-### Key Functions/Classes
+- `loadNext`: This function is responsible for loading the next page of items. It simulates a delay to show a loading state.
+- `loadPrevious`: This function is responsible for loading the previous page of items, if it exists. It also simulates a delay to show a loading state.
+- `load`: This function is responsible for loading the initial set of items. It also simulates a delay to show a loading state.
+- `handleUpdatePages`: This function updates the `pages` value with the updated pages.
+- `onAdd`: This function adds a new item at a random position in each page.
 
-*   **`loadNext`**, **`loadPrevious`**, and **`load`**: These functions simulate the loading of new or previous pages in the masonry layout.
-*   **`handleUpdatePages`**: This function updates the `pages` ref with new page data.
-*   **`onAdd`**: This function adds random items to each page in the masonry layout.
+## How It's Used
+`App.vue` is typically the entry point of a Vue application. It renders the `WyxosMasonry` component and manages the state of the items displayed within it. The `load`, `loadNext`, and `loadPrevious` functions are passed as props to the `WyxosMasonry` component and are used to fetch the items to be displayed.
 
-### How It's Used
+## Dependencies
 
-This file is typically used as the main entry point for the application, where the `WyxosMasonry` component is rendered. The component can be controlled using the `load`, `loadNext`, and `loadPrevious` functions, which are bound to user interactions such as button clicks.
-
-### Dependencies
-
-*   **`vue`**: The Vue.js framework used for building the application.
-*   **`uuid`**: A library used for generating unique IDs for items in the masonry layout.
-*   **`wyxos-masonry`**: A custom component (not shown here) that provides a basic implementation of a masonry layout.
+- `WyxosMasonry`: A custom Vue component imported from `./components/WyxosMasonry.vue`.
+- `uuid`: A library used to generate unique identifiers for each item.
+- `vue`: The Vue library, from which `computed`, `onMounted`, and `ref` are imported.

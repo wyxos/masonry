@@ -2,65 +2,20 @@
 
 **File Path**: `src\components\WyxosMasonry.vue`
 
-**WyxosMasonry.vue**
-=====================
+# `WyxosMasonry.vue` Documentation
 
-**File Purpose**
----------------
+## File Purpose
+`WyxosMasonry.vue` is a Vue.js component that provides an infinite scrolling masonry-style grid of items. It allows for dynamic loading of new items, removal of items, and customization of the grid's appearance.
 
-The `WyxosMasonry.vue` file is a custom Vue component designed to handle infinite scrolling for a masonry layout. It provides a flexible and customizable solution for loading and rendering content in an endless scroll manner.
+## Key Functions/Classes
 
-**Key Functions/Classes**
-------------------------
+- **`loadNext`**: This asynchronous function loads the next set of items when the end of the current set is reached.
+- **`loadPrevious`**: This asynchronous function loads the previous set of items when the start of the current set is reached.
+- **`handleIntersection`**: This function is triggered when the 'Load More' button comes into view and calls `loadNext` to load more items if possible.
+- **`onRemove`**: This function removes an item from the grid when the remove button is clicked.
 
-*   `emit`: Emits events to update the parent component's model value.
-*   `isLoading`, `loadingDirection`: Refs used to track the loading state and direction of the component.
-*   `props`: Defines the component's props, including functions for loading more content (`loadNext` and `loadPrevious`) and customizable classes for the container, load more button, loader, grid item, and cache size.
-*   `infiniteScroll`, `loadMoreButton`, `ready`: Refs used to store references to the infinite scroll container, load more button, and ready state flag.
+## How It's Used
+This file is used within the larger project as a Vue.js component. It should be imported into the parent component and utilized there. The parent component should provide the required `load`, `loadNext`, `loadPrevious`, and `modelValue` props, and can optionally customize the appearance and behavior of the grid with additional props.
 
-**How It's Used**
-----------------
-
-The component is typically used in conjunction with a parent component that provides the necessary props (e.g., `loadNext` and `loadPrevious`) functions. The child component will handle the rendering of content and the infinite scrolling functionality, updating its model value as needed to reflect changes in the data.
-
-**Dependencies**
----------------
-
-*   `vue`
-*   `IntersectionObserver`
-
-**Example Usage**
------------------
-
-```html
-<WyxosMasonry
-  :containerClass="customContainerClass"
-  :loadMoreButtonClass="customLoadMoreButtonClass"
-  :loaderClass="customLoaderClass"
-  :gridItemClass="customGridItemClass"
-  :cacheSize="10"
-  @update:modelValue="handleModelUpdate"
-/>
-```
-
-```html
-<template>
-  <div class="my-component">
-    <!-- Slot for rendering the component's content -->
-    <slot />
-  </div>
-</template>
-
-<script>
-import WyxosMasonry from './WyxosMasonry.vue'
-
-export default {
-  components: { WyxosMasonry },
-  methods: {
-    handleModelUpdate(value) {
-      // Update your parent component's model value here
-    }
-  }
-}
-</script>
-```
+## Dependencies
+This file relies heavily on Vue.js 3's Composition API, including `ref`, `onMounted`, `nextTick`, `defineEmits`, `computed`, and `onBeforeUnmount`. It also uses the Intersection Observer API to detect when the 'Load More' button comes into view.
